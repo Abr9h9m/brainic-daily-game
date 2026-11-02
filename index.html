@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f3ec">
+  <title>Brainic — Daily Puzzle</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="game.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Brainic home"><span class="brand-mark">B</span> Brainic</a>
+    <div class="date-label" id="date-label"></div>
+    <button class="icon-button" id="help-button" aria-label="How to play">?</button>
+  </header>
+
+  <main id="top">
+    <section class="intro">
+      <p class="eyebrow">A little curiosity, every day</p>
+      <h1>Three puzzles.<br><span>One daily streak.</span></h1>
+      <p class="intro-copy">Three puzzles, one daily run. Warm up with a word, spot what doesn’t fit, then find your way to a country.</p>
+    </section>
+
+    <nav class="stage-nav" aria-label="Puzzle stages">
+      <button class="stage-tab active" data-stage-tab="0"><span class="tab-number">01</span><span>Word</span><i></i></button>
+      <button class="stage-tab" data-stage-tab="1" disabled><span class="tab-number">02</span><span>Odd one out</span><i></i></button>
+      <button class="stage-tab" data-stage-tab="2" disabled><span class="tab-number">03</span><span>Country</span><i></i></button>
+    </nav>
+
+    <section class="game-card" aria-live="polite">
+      <div class="stage-heading">
+        <div><p class="eyebrow" id="stage-kicker">STAGE 01 · WORD</p><h2 id="stage-title">Find the five-letter word</h2></div>
+        <span class="progress-pill" id="progress-pill">1 of 3</span>
+      </div>
+      <p class="stage-description" id="stage-description">You have six tries. Each guess must be a five-letter word.</p>
+
+      <div id="word-panel" class="puzzle-panel">
+        <div class="word-grid" id="word-grid" role="grid" aria-label="Word guess grid"></div>
+        <form class="guess-form" id="word-form" autocomplete="off">
+          <label class="sr-only" for="word-input">Enter a five-letter word</label>
+          <input id="word-input" maxlength="5" minlength="5" placeholder="TYPE A WORD" autocapitalize="characters" spellcheck="false">
+          <button class="primary-button" type="submit">Guess <span>↗</span></button>
+        </form>
+        <p class="message" id="word-message" role="status"></p>
+      </div>
+
+      <div id="odd-panel" class="puzzle-panel hidden">
+        <p class="prompt-note">Four belong together. Pick the one that doesn’t.</p>
+        <div class="odd-options" id="odd-options"></div>
+        <p class="message" id="odd-message" role="status"></p>
+      </div>
+
+      <div id="country-panel" class="puzzle-panel hidden">
+        <div class="clue-count" id="clue-count"><span class="clue-dot current"></span><span class="clue-dot"></span><span class="clue-dot"></span><span class="clue-caption">CLUE 1 OF 3</span></div>
+        <div class="clue-card"><span class="quote-mark">“</span><p id="country-clue"></p></div>
+        <form class="guess-form" id="country-form" autocomplete="off">
+          <label class="sr-only" for="country-input">Guess the country</label>
+          <input id="country-input" placeholder="NAME A COUNTRY" autocapitalize="words" spellcheck="false">
+          <button class="primary-button" type="submit">Guess <span>↗</span></button>
+        </form>
+        <p class="message" id="country-message" role="status"></p>
+      </div>
+
+      <div class="stage-footer"><span id="footer-hint">Green means right letter, right place.</span><button class="text-button hidden" id="continue-button">Continue to stage 2 <span>→</span></button></div>
+    </section>
+
+    <section class="below-card"><div class="streak-icon">✳</div><p><strong>Three little challenges.</strong><br>Come back tomorrow for a new set.</p><button id="share-button" class="share-button">Share result <span>↗</span></button></section>
+    <footer>Made for a curious five minutes <span>·</span> New puzzles daily</footer>
+  </main>
+
+  <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="Close">×</button><p class="eyebrow">HOW TO PLAY</p><h2>Three stages, one daily run.</h2><div class="help-step"><b>01</b><p><strong>Word</strong><br>Guess the five-letter word in six tries.</p></div><div class="help-step"><b>02</b><p><strong>Odd one out</strong><br>Find the item that doesn’t share the group’s connection.</p></div><div class="help-step"><b>03</b><p><strong>Country</strong><br>Use three clues and up to three guesses. A new clue appears after each miss.</p></div><p class="help-foot">Your progress stays on this device.</p></dialog>
+</body>
+</html>
