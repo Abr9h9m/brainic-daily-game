@@ -49,8 +49,6 @@ function render() {
     button.classList.toggle('selected', selected);
     button.setAttribute('aria-pressed', String(selected));
   });
-  $('start-button').disabled = !state.difficulty;
-  $('start-button').innerHTML = state.difficulty ? `Start ${state.difficulty[0].toUpperCase()+state.difficulty.slice(1)} game <span>→</span>` : 'Choose a level to begin <span>→</span>';
   if (!state.started) return;
 
   const puzzle = currentPuzzle();
@@ -112,8 +110,7 @@ function selectOdd(i,puzzle) {
   state.oddSelected=i; state.oddDone=true; state.oddWon=i===puzzle.odd.answer; save(); render();
 }
 
-document.querySelectorAll('.difficulty-option').forEach(button=>button.addEventListener('click',()=>{state.difficulty=button.dataset.difficulty;save();render();}));
-$('start-button').addEventListener('click',()=>{if(!state.difficulty)return;state.started=true;save();render();});
+document.querySelectorAll('.difficulty-option').forEach(button=>button.addEventListener('click',()=>{state.difficulty=button.dataset.difficulty;state.started=true;save();render();}));
 $('word-form').addEventListener('submit', e=>{
   e.preventDefault(); if(state.wordDone)return; const guess=$('word-input').value.trim().toUpperCase();
   if(!/^[A-Z]{5}$/.test(guess)){ $('word-message').textContent='Enter a five-letter word to guess.'; $('word-message').classList.add('error'); return; }
