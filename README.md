@@ -1,6 +1,6 @@
 # Brainic
 
-**Three puzzles, one daily run.** Brainic is a small, mobile-friendly daily puzzle game that combines a five-letter word puzzle, a Connections-style word grouping puzzle, and a country guessing challenge.
+**Four puzzles, one daily run.** Brainic is a mobile-friendly daily puzzle game that combines a five-letter word puzzle, a Connections-style word grouping puzzle, a country guessing challenge, and an IQ-style pattern matrix.
 
 ## Play locally
 
@@ -41,6 +41,14 @@ Read a clue and guess a country. A wrong guess reveals the next clue. Players ge
 
 An optional hint panel appears beside the clues. Reveal either the country's continent or the colors on its flag, once per daily puzzle. The flag itself is never shown. Using the optional hint does not consume one of the three clue attempts.
 
+### Stage 4 — Pattern matrix
+
+Study a 3×3 grid of shapes with the final tile missing. Pick the option that completes its pattern. Beginner puzzles use a clear count-and-shape rule; Intermediate puzzles shift the count pattern between rows; Expert puzzles combine count, shape, and filled-versus-outline rules. A short explanation appears after the choice. Correctly solving the matrix earns the **Pattern Seeker** badge. These are IQ-style brain teasers, not a standardized IQ test or IQ score.
+
+## Display theme
+
+Use the **Dark** / **Light** control in the top bar to switch themes. The choice is saved in this browser and applies across reloads and daily puzzles.
+
 ## Daily puzzle behavior
 
 - The current prototype contains five sample puzzle sets for each of the three difficulty levels in `game.js` and rotates through them by calendar day.
@@ -53,9 +61,9 @@ An optional hint panel appears beside the clues. Reveal either the country's con
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | Page structure, difficulty chooser, stage navigation, forms, Connections grid, country hint panel, badge collection and help dialogs, and accessible labels. |
-| `styles.css` | Visual design, typography, responsive layout, puzzle feedback, badge collection, and badge-entry styling. |
-| `game.js` | Sample daily puzzle and Connections data by difficulty, stage rules, one-use country hints, local progress, badge earning and inventory storage, and sharing behavior. |
+| `index.html` | Page structure, difficulty chooser, four-stage navigation, puzzle controls, pattern grid, badge collection and help dialogs, theme toggle, and accessible labels. |
+| `styles.css` | Visual design, typography, responsive layout, light and dark themes, puzzle feedback, badge collection, and matrix styling. |
+| `game.js` | Daily puzzle data, four stage rules, theme preference, local progress, badge earning and inventory storage, and sharing behavior. |
 ## Editing puzzle content
 
 Open `game.js` and edit the `PUZZLES` and `CONNECTION_SETS` lists. Each entry has:

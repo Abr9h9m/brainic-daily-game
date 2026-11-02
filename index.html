@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f6f3ec">
-  <title>Brainic — Daily Puzzle</title>
+  <title>Brainic </title>
   <link rel="stylesheet" href="styles.css">
   <script src="game.js" defer></script>
 </head>
@@ -12,6 +12,7 @@
   <header class="topbar">
     <a class="brand" href="#top" aria-label="Brainic home"><span class="brand-mark">B</span> Brainic</a>
     <div class="date-label" id="date-label"></div>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode"><span id="theme-icon" aria-hidden="true">☾</span><span id="theme-label">Dark</span></button>
     <button class="badge-collection-button" id="badges-button" aria-label="Open badge collection"><span class="inventory-medal" aria-hidden="true">✦</span><span>Badges</span><span class="badge-count" id="badge-count">0</span></button>
     <button class="icon-button" id="help-button" aria-label="How to play">?</button>
   </header>
@@ -19,8 +20,8 @@
   <main id="top">
     <section class="intro">
       <p class="eyebrow">A little curiosity, every day</p>
-      <h1>Three puzzles.<br><span>One daily streak.</span></h1>
-      <p class="intro-copy">Three puzzles, one daily run. Find a word, connect the clues, then discover a country.</p>
+      <h1>Four puzzles.<br><span>One daily streak.</span></h1>
+      <p class="intro-copy">Four puzzles, one daily run. Find a word, connect the clues, discover a country, then complete a pattern.</p>
     </section>
 
     <section class="difficulty-screen" id="difficulty-screen" aria-labelledby="difficulty-title">
@@ -37,6 +38,7 @@
       <button class="stage-tab active" data-stage-tab="0"><span class="tab-number">01</span><span>Word</span><i></i></button>
       <button class="stage-tab" data-stage-tab="1" disabled><span class="tab-number">02</span><span>Connections</span><i></i></button>
       <button class="stage-tab" data-stage-tab="2" disabled><span class="tab-number">03</span><span>Country</span><i></i></button>
+      <button class="stage-tab" data-stage-tab="3" disabled><span class="tab-number">04</span><span>Pattern</span><i></i></button>
     </nav>
 
     <section class="game-card hidden" id="game-card" aria-live="polite">
@@ -100,14 +102,23 @@
         </div>
       </div>
 
+      <div id="matrix-panel" class="puzzle-panel hidden">
+        <p class="matrix-prompt">Study the pattern in each row and column. Which tile completes the grid?</p>
+        <div class="matrix-grid" id="matrix-grid" role="img" aria-label="Pattern matrix with one missing tile"></div>
+        <p class="matrix-choice-label">CHOOSE THE MISSING TILE</p>
+        <div class="matrix-options" id="matrix-options" role="group" aria-label="Answer choices"></div>
+        <p class="message matrix-message" id="matrix-message" role="status"></p>
+        <div class="matrix-explanation hidden" id="matrix-explanation" role="status"></div>
+      </div>
+
       <div class="stage-footer"><span id="footer-hint">Green means right letter, right place.</span><button class="text-button hidden" id="continue-button">Continue to stage 2 <span>→</span></button></div>
     </section>
 
-    <section class="below-card hidden" id="below-card"><div class="streak-icon">✳</div><p><strong>Three little challenges.</strong><br>Come back tomorrow for a new set.</p><button id="share-button" class="share-button">Share result <span>↗</span></button></section>
+    <section class="below-card hidden" id="below-card"><div class="streak-icon">✳</div><p><strong>Four little challenges complete.</strong><br>Come back tomorrow for a new set.</p><button id="share-button" class="share-button">Share result <span>↗</span></button></section>
     <footer>Made for a curious five minutes <span>·</span> New puzzles daily</footer>
   </main>
 
   <dialog id="badge-dialog" class="badge-dialog"><button class="dialog-close" id="close-badges" aria-label="Close badge collection">×</button><p class="eyebrow">YOUR COLLECTION</p><h2>Badges</h2><p class="badge-summary" id="badge-summary">No badges yet</p><div class="badge-inventory" id="badge-inventory"></div><p class="help-foot">Badges are saved in this browser.</p></dialog>
-  <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="Close">×</button><p class="eyebrow">HOW TO PLAY</p><h2>Three stages, one daily run.</h2><div class="help-step"><b>01</b><p><strong>Word</strong><br>Guess the five-letter word in six tries. Solve it to earn a Word Whiz badge.</p></div><div class="help-step"><b>02</b><p><strong>Connections</strong><br>Sort 16 words into four groups of four. Find all four groups to earn a Pattern Finder badge.</p></div><div class="help-step"><b>03</b><p><strong>Country</strong><br>Use three clues and up to three guesses. Guess the country to earn a World Scout badge. You may also reveal either the continent or flag colors, once per puzzle.</p></div><p class="help-foot">Choose Beginner, Intermediate, or Expert at the start. Your level and progress stay on this device for today.</p></dialog>
+  <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="Close">×</button><p class="eyebrow">HOW TO PLAY</p><h2>Four stages, one daily run.</h2><div class="help-step"><b>01</b><p><strong>Word</strong><br>Guess the five-letter word in six tries. Solve it to earn a Word Whiz badge.</p></div><div class="help-step"><b>02</b><p><strong>Connections</strong><br>Sort 16 words into four groups of four. Find all four groups to earn a Pattern Finder badge.</p></div><div class="help-step"><b>03</b><p><strong>Country</strong><br>Use three clues and up to three guesses. Guess the country to earn a World Scout badge.</p></div><div class="help-step"><b>04</b><p><strong>Pattern</strong><br>Find the rule in the shape grid and choose the tile that completes it. Solve it to earn a Pattern Seeker badge.</p></div><p class="help-foot">Choose Beginner, Intermediate, or Expert at the start. Your level and progress stay on this device for today.</p></dialog>
 </body>
 </html>

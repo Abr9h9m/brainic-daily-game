@@ -46,6 +46,30 @@ const CONNECTION_SETS = {
   ]
 };
 
+const MATRIX_SETS = {
+  beginner: [
+    { cells:['●','●●','●●●','■','■■','■■■','▲','▲▲'], answer:'▲▲▲', options:['▲▲▲','▲▲','◆◆◆','●●●'], explanation:'Each row keeps the same shape, while the number of shapes increases from one to two to three across the row.' },
+    { cells:['◆','◆◆','◆◆◆','●','●●','●●●','■','■■'], answer:'■■■', options:['■■','■■■','▲▲▲','●●●'], explanation:'The shape changes from row to row; across each row, the count goes one, two, three.' },
+    { cells:['▲','▲▲','▲▲▲','◆','◆◆','◆◆◆','●','●●'], answer:'●●●', options:['●●','●●●','■■■','◆◆◆'], explanation:'Read each row: it uses one shape, and each step to the right adds one more.' },
+    { cells:['■','■■','■■■','▲','▲▲','▲▲▲','◆','◆◆'], answer:'◆◆◆', options:['◆◆◆','◆◆','●●●','▲▲▲'], explanation:'The rows use a different shape, and each row follows the same one-two-three count pattern.' },
+    { cells:['●','●●','●●●','◆','◆◆','◆◆◆','▲','▲▲'], answer:'▲▲▲', options:['▲▲','▲▲▲','■■■','●●●'], explanation:'Every row follows the same count pattern: one, then two, then three.' }
+  ],
+  intermediate: [
+    { cells:['●','●●','●●●','■■','■■■','■','▲▲▲','▲'], answer:'▲▲', options:['▲','▲▲','▲▲▲','◆◆'], explanation:'The shape changes by row. The counts shift one place each row: 1–2–3, then 2–3–1, then 3–1–2.' },
+    { cells:['◆','◆◆','◆◆◆','▲▲','▲▲▲','▲','●●●','●'], answer:'●●', options:['●','●●','●●●','■■'], explanation:'Across each row the count rises by one, wrapping back to one after three; each new row changes the shape.' },
+    { cells:['■■■','■','■■','●●','●●●','●','◆','◆◆'], answer:'◆◆◆', options:['◆','◆◆','◆◆◆','▲▲▲'], explanation:'The count pattern shifts across each row: 3–1–2, then 2–3–1, then 1–2–3.' },
+    { cells:['▲▲','▲▲▲','▲','◆◆◆','◆','◆◆','●','●●'], answer:'●●●', options:['●','●●','●●●','■■'], explanation:'Each row shifts the one-two-three count pattern one position to the left.' },
+    { cells:['●●●','●','●●','◆◆','◆◆◆','◆','▲','▲▲'], answer:'▲▲▲', options:['▲','▲▲','▲▲▲','■■■'], explanation:'The rows rotate the count order: 3–1–2, 2–3–1, then 1–2–3.' }
+  ],
+  expert: [
+    { cells:['●','○○','●●●','□□','■■■','□','△△△','△'], answer:'▲▲', options:['▲','▲▲','▲▲▲','△△'], explanation:'Two rules work together: counts cycle across the rows (1–2–3, 2–3–1, 3–1–2), and the fill alternates like a checkerboard. The missing tile needs two filled triangles.' },
+    { cells:['◆','◇◇','◆◆◆','△△','▲▲▲','△','●●●','○'], answer:'●●', options:['○','○○','●●','○○○'], explanation:'Counts cycle one-two-three across each row, shifting the start by one in each new row. Filled and outline shapes alternate by position.' },
+    { cells:['□','■■','□□□','△△','▲▲▲','△','●●●','○'], answer:'●●', options:['○','○○','●●','○○○'], explanation:'Follow both patterns: the count shifts across rows, and fill alternates between neighboring cells. The final cell takes two filled circles.' },
+    { cells:['△△△','▲','△△','●●','●●●','●','◇','◆◆'], answer:'◇◇◇', options:['◇','◇◇','◇◇◇','◆◆◆'], explanation:'The counts rotate through 3–1–2, 2–3–1, then 1–2–3. The shape changes by row and the fill alternates across adjacent tiles.' },
+    { cells:['○','●●','○○○','■■','□□□','■','◆◆◆','◇'], answer:'◇◇', options:['◇','◇◇','◆◆','◇◇◇'], explanation:'Each row shifts the count cycle one place, and alternating fill switches between outline and solid. The missing cell has two outline diamonds.' }
+  ]
+};
+
 const today = new Date();
 const dayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 const epoch = Date.UTC(2026, 0, 1);
@@ -53,10 +77,12 @@ const dayNumber = Math.floor((Date.UTC(today.getFullYear(),today.getMonth(),toda
 const puzzleIndex = ((dayNumber % 5) + 5) % 5;
 const storageKey = `brainic:${dayKey}`;
 const badgeStorageKey = 'brainic:badges';
+const themeStorageKey = 'brainic:theme';
 const BADGE_DEFINITIONS = {
   word: { name:'Word Whiz', icon:'🧠', description:'Solved the daily word.' },
   connections: { name:'Pattern Finder', icon:'🔗', description:'Found all four word groups.' },
-  country: { name:'World Scout', icon:'🌍', description:'Guessed today’s country.' }
+  country: { name:'World Scout', icon:'🌍', description:'Guessed today’s country.' },
+  matrix: { name:'Pattern Seeker', icon:'🔷', description:'Solved the daily pattern matrix.' }
 };
 function readBadges() {
   try { const badges=JSON.parse(localStorage.getItem(badgeStorageKey)||'[]'); return Array.isArray(badges)?badges.filter(badge=>badge&&typeof badge.id==='string'):[]; }
@@ -68,6 +94,7 @@ function syncEarnedBadges() {
     if (state.wordWon) earned.push('word');
     if (state.connectionsSolved.length===4) earned.push('connections');
     if (state.countryWon) earned.push('country');
+    if (state.matrixWon) earned.push('matrix');
     const badges=readBadges();
     earned.forEach(stage=>{
       const id=`${dayKey}:${state.difficulty}:${stage}`;
@@ -93,23 +120,34 @@ function renderBadgeInventory() {
     copy.append(title,description,date);card.append(icon,copy);inventory.append(card);
   });
 }
-const fresh = () => ({ gameVersion:3, difficulty:null, started:false, stage:0, wordGuesses:[], wordDone:false, wordWon:false, wordCelebrationSeen:false, connectionsBoard:[], connectionsSelected:[], connectionsSolved:[], connectionsMistakes:4, connectionsDone:false, connectionsMessage:'', countryTries:0, countryDone:false, countryWon:false, countryHint:null });
+const fresh = () => ({ gameVersion:4, difficulty:null, started:false, stage:0, wordGuesses:[], wordDone:false, wordWon:false, wordCelebrationSeen:false, connectionsBoard:[], connectionsSelected:[], connectionsSolved:[], connectionsMistakes:4, connectionsDone:false, connectionsMessage:'', countryTries:0, countryDone:false, countryWon:false, countryHint:null, matrixDone:false, matrixWon:false, matrixChoice:null });
 let state;
 try {
-  state = { ...fresh(), ...JSON.parse(localStorage.getItem(storageKey) || '{}') };
-  if (state.gameVersion !== 3 || !state.difficulty) state = fresh();
+  const stored=JSON.parse(localStorage.getItem(storageKey)||'{}');
+  state={...fresh(),...stored};
+  if (![3,4].includes(state.gameVersion)||!state.difficulty) state=fresh();
+  else state.gameVersion=4;
 } catch { state = fresh(); }
 const $ = id => document.getElementById(id);
+let activeTheme=localStorage.getItem(themeStorageKey)==='dark'?'dark':'light';
+function applyTheme(){
+  document.documentElement.dataset.theme=activeTheme;
+  const dark=activeTheme==='dark';
+  $('theme-toggle').setAttribute('aria-label',`Switch to ${dark?'light':'dark'} mode`);
+  $('theme-icon').textContent=dark?'☀':'☾';
+  $('theme-label').textContent=dark?'Light':'Dark';
+}
 const save = () => localStorage.setItem(storageKey, JSON.stringify(state));
-const currentPuzzle = () => state.difficulty ? { ...PUZZLES[state.difficulty][puzzleIndex], connections:CONNECTION_SETS[state.difficulty][puzzleIndex] } : null;
+const currentPuzzle = () => state.difficulty ? { ...PUZZLES[state.difficulty][puzzleIndex], connections:CONNECTION_SETS[state.difficulty][puzzleIndex], matrix:MATRIX_SETS[state.difficulty][puzzleIndex] } : null;
 
 function render() {
   syncEarnedBadges();
+  applyTheme();
   $('date-label').textContent = new Intl.DateTimeFormat('en', { weekday:'long', month:'long', day:'numeric' }).format(today);
   $('difficulty-screen').classList.toggle('hidden', state.started);
   $('stage-nav').classList.toggle('hidden', !state.started);
   $('game-card').classList.toggle('hidden', !state.started);
-  $('below-card').classList.toggle('hidden', !state.started);
+  $('below-card').classList.toggle('hidden', !(state.started && state.stage===3 && state.matrixDone));
   document.querySelectorAll('.difficulty-option').forEach(button => {
     const selected = button.dataset.difficulty === state.difficulty;
     button.classList.toggle('selected', selected);
@@ -120,22 +158,55 @@ function render() {
   const puzzle = currentPuzzle();
   document.querySelectorAll('[data-stage-tab]').forEach((tab, i) => {
     tab.classList.toggle('active', i === state.stage);
-    tab.classList.toggle('complete', (i === 0 && state.wordDone) || (i === 1 && state.connectionsDone) || (i === 2 && state.countryDone));
+    tab.classList.toggle('complete', (i === 0 && state.wordDone) || (i === 1 && state.connectionsDone) || (i === 2 && state.countryDone) || (i === 3 && state.matrixDone));
     tab.disabled = i > state.stage;
   });
-  $('progress-pill').textContent = `${state.stage + 1} of 3`;
-  $('stage-kicker').textContent = `STAGE 0${state.stage + 1} · ${['WORD','CONNECTIONS','COUNTRY'][state.stage]}`;
+  $('progress-pill').textContent = `${state.stage + 1} of 4`;
+  $('stage-kicker').textContent = `STAGE 0${state.stage + 1} · ${['WORD','CONNECTIONS','COUNTRY','PATTERN MATRIX'][state.stage]}`;
   $('word-panel').classList.toggle('hidden', state.stage !== 0);
   $('connections-panel').classList.toggle('hidden', state.stage !== 1);
   $('country-panel').classList.toggle('hidden', state.stage !== 2);
-  const titles = ['Find the five-letter word','Connect the words','Name the country'];
-  const descriptions = ['You have six tries. Each guess must be a five-letter word.','Sort all 16 words into four groups of four.','Three clues, three guesses, and one optional hint.'];
+  $('matrix-panel').classList.toggle('hidden', state.stage !== 3);
+  const titles = ['Find the five-letter word','Connect the words','Name the country','Complete the pattern'];
+  const descriptions = ['You have six tries. Each guess must be a five-letter word.','Sort all 16 words into four groups of four.','Three clues, three guesses, and one optional hint.','Find the rule that connects the shapes in the grid.'];
   $('stage-title').textContent = titles[state.stage]; $('stage-description').textContent = descriptions[state.stage];
-  $('footer-hint').textContent = ['Green means right letter, right place.','Each word belongs to exactly one group.','Reveal the continent or flag colors if you need a nudge.'][state.stage];
-  $('continue-button').classList.toggle('hidden', !((state.stage === 0 && state.wordDone) || (state.stage === 1 && state.connectionsDone)));
-  $('continue-button').textContent = state.stage === 0 ? 'Continue to stage 2 →' : 'Continue to stage 3 →';
-  drawWord(puzzle); drawConnections(puzzle); drawCountry(puzzle);
+  $('footer-hint').textContent = ['Green means right letter, right place.','Each word belongs to exactly one group.','Reveal the continent or flag colors if you need a nudge.','Look for changes in shape, count, position, or fill.'][state.stage];
+  const stageComplete=[state.wordDone,state.connectionsDone,state.countryDone,state.matrixDone];
+  $('continue-button').classList.toggle('hidden', !(state.stage<3 && stageComplete[state.stage]));
+  $('continue-button').textContent = `Continue to stage ${state.stage+2} →`;
+  drawWord(puzzle); drawConnections(puzzle); drawCountry(puzzle); drawMatrix(puzzle);
   $('word-input').disabled = state.wordDone; $('country-input').disabled = state.countryDone;
+}
+
+function drawMatrix(puzzle) {
+  const matrix=puzzle.matrix;
+  const grid=$('matrix-grid');grid.innerHTML='';
+  [...matrix.cells,null].forEach((symbols,index)=>{
+    const tile=document.createElement('div');tile.className='matrix-tile';
+    if(index===8){tile.classList.add('matrix-missing');tile.textContent=state.matrixDone?matrix.answer:'?';tile.setAttribute('aria-label',state.matrixDone?`Answer: ${matrix.answer}`:'Missing tile');}
+    else{tile.textContent=symbols;tile.setAttribute('aria-label',`${symbols.length} ${symbols[0]}`);}
+    grid.append(tile);
+  });
+  const options=$('matrix-options');options.innerHTML='';
+  matrix.options.forEach((value,index)=>{
+    const button=document.createElement('button');button.type='button';button.className='matrix-option';button.textContent=value;
+    button.setAttribute('aria-label',`Option ${String.fromCharCode(65+index)}: ${value}`);
+    button.setAttribute('aria-pressed',String(state.matrixChoice===value));
+    button.classList.toggle('selected',state.matrixChoice===value);
+    button.classList.toggle('correct',state.matrixDone&&value===matrix.answer);
+    button.classList.toggle('incorrect',state.matrixDone&&state.matrixChoice===value&&!state.matrixWon);
+    button.disabled=state.matrixDone;
+    button.addEventListener('click',()=>chooseMatrixAnswer(value));options.append(button);
+  });
+  $('matrix-message').textContent=state.matrixDone?(state.matrixWon?'Correct! You found the pattern and earned the Pattern Seeker badge.':`Not quite — the answer is ${matrix.answer}.`):'Choose the tile that completes the grid.';
+  $('matrix-message').classList.toggle('error',state.matrixDone&&!state.matrixWon);
+  $('matrix-explanation').textContent=matrix.explanation;
+  $('matrix-explanation').classList.toggle('hidden',!state.matrixDone);
+}
+
+function chooseMatrixAnswer(value){
+  if(state.matrixDone)return;
+  state.matrixChoice=value;state.matrixWon=value===currentPuzzle().matrix.answer;state.matrixDone=true;save();render();
 }
 
 function drawWord(puzzle) {
@@ -253,12 +324,13 @@ $('country-form').addEventListener('submit', e=>{
   if(!state.countryDone) $('country-message').textContent='Not quite. Here’s another clue.';
 });
 document.querySelectorAll('[data-hint]').forEach(button=>button.addEventListener('click',()=>{if(state.countryHint||state.countryDone)return;state.countryHint=button.dataset.hint;save();render();}));
-$('continue-button').addEventListener('click',()=>{state.stage=Math.min(state.stage+1,2);save();render();window.scrollTo({top:0,behavior:'smooth'});});
+$('continue-button').addEventListener('click',()=>{state.stage=Math.min(state.stage+1,3);save();render();window.scrollTo({top:0,behavior:'smooth'});});
 document.querySelectorAll('[data-stage-tab]').forEach(tab=>tab.addEventListener('click',()=>{const target=Number(tab.dataset.stageTab);if(target<=state.stage){state.stage=target;save();render();}}));
 $('help-button').addEventListener('click',()=>$('help-dialog').showModal()); $('close-help').addEventListener('click',()=>$('help-dialog').close());
+$('theme-toggle').addEventListener('click',()=>{activeTheme=activeTheme==='dark'?'light':'dark';localStorage.setItem(themeStorageKey,activeTheme);applyTheme();});
 $('badges-button').addEventListener('click',()=>{renderBadgeInventory();$('badge-dialog').showModal();}); $('close-badges').addEventListener('click',()=>$('badge-dialog').close());
 $('share-button').addEventListener('click',async()=>{
-  const result=`Brainic ${dayKey} · ${state.difficulty}\n${state.wordDone?(state.wordWon?'🟩':'🟨'):'⬜'} Word  ·  ${state.connectionsDone?(state.connectionsMistakes>0?'🟩':'🟨'):'⬜'} Connections  ·  ${state.countryDone?(state.countryWon?'🟩':'🟨'):'⬜'} Country`;
+  const result=`Brainic ${dayKey} · ${state.difficulty}\n${state.wordDone?(state.wordWon?'🟩':'🟨'):'⬜'} Word  ·  ${state.connectionsDone?(state.connectionsMistakes>0?'🟩':'🟨'):'⬜'} Connections  ·  ${state.countryDone?(state.countryWon?'🟩':'🟨'):'⬜'} Country  ·  ${state.matrixDone?(state.matrixWon?'🟩':'🟨'):'⬜'} Pattern`;
   try { await navigator.clipboard.writeText(result); $('share-button').innerHTML='Copied! ✓'; setTimeout(()=>$('share-button').innerHTML='Share result <span>↗</span>',1600); } catch { window.prompt('Copy your result:',result); }
 });
 
