@@ -29,6 +29,8 @@ At the beginning of each daily run, choose Beginner, Intermediate, or Expert. Be
 
 Guess a five-letter answer in six tries. Green means a letter is in the correct position, yellow means it appears elsewhere in the answer, and gray means it is not in the answer. The prototype currently accepts any five alphabetic letters; it does not check guesses against a dictionary.
 
+Correctly solving the word unlocks the animated **Word Whiz** daily badge. The badge remains visible after the animation and does not replay on reload.
+
 ### Stage 2 — Odd one out
 
 Choose the item that does not share the connection among the others. The game then reveals the answer and explains the shared category.

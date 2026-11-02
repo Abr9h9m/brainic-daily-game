@@ -28,7 +28,7 @@ const epoch = Date.UTC(2026, 0, 1);
 const dayNumber = Math.floor((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()) - epoch) / 86400000);
 const puzzleIndex = ((dayNumber % 5) + 5) % 5;
 const storageKey = `brainic:${dayKey}`;
-const fresh = () => ({ difficulty:null, started:false, stage:0, wordGuesses:[], wordDone:false, wordWon:false, oddDone:false, oddWon:false, countryTries:0, countryDone:false, countryWon:false, countryHint:null, oddSelected:null });
+const fresh = () => ({ difficulty:null, started:false, stage:0, wordGuesses:[], wordDone:false, wordWon:false, wordCelebrationSeen:false, oddDone:false, oddWon:false, countryTries:0, countryDone:false, countryWon:false, countryHint:null, oddSelected:null });
 let state;
 try {
   state = { ...fresh(), ...JSON.parse(localStorage.getItem(storageKey) || '{}') };
@@ -80,6 +80,11 @@ function drawWord(puzzle) {
     if (guess) { tile.textContent=guess[c]; tile.classList.add('filled'); const answer=puzzle.word; if (guess[c]===answer[c]) tile.classList.add('correct'); else if (answer.includes(guess[c])) tile.classList.add('present'); else tile.classList.add('absent'); }
     grid.append(tile);
   }
+  const award = $('word-award');
+  award.classList.toggle('hidden', !state.wordWon);
+  const celebrateNow = state.wordWon && !state.wordCelebrationSeen;
+  award.classList.toggle('celebrate', celebrateNow);
+  if (celebrateNow) { state.wordCelebrationSeen = true; save(); }
   if (state.wordDone) $('word-message').textContent = state.wordWon ? `Lovely. The word was ${puzzle.word}.` : `The word was ${puzzle.word}.`;
 }
 
