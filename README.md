@@ -23,6 +23,8 @@ The website is static, so no PHP or server configuration is needed. Anyone with 
 
 ## How to play
 
+At the beginning of each daily run, choose Beginner, Intermediate, or Expert. Beginner uses familiar words, obvious odd-one-out categories, and more direct country clues. Intermediate is balanced. Expert uses less common words, subtler categories, and more demanding clues. Your selected level is saved for the day in this browser.
+
 ### Stage 1 — Word
 
 Guess a five-letter answer in six tries. Green means a letter is in the correct position, yellow means it appears elsewhere in the answer, and gray means it is not in the answer. The prototype currently accepts any five alphabetic letters; it does not check guesses against a dictionary.
@@ -33,11 +35,13 @@ Choose the item that does not share the connection among the others. The game th
 
 ### Stage 3 — Country
 
-Read a difficult clue and guess a country. A wrong guess reveals the next clue. Players get up to three clue-and-guess attempts; after the third incorrect guess, the answer is revealed. A correct guess ends the stage early.
+Read a clue and guess a country. A wrong guess reveals the next clue. Players get up to three clue-and-guess attempts; after the third incorrect guess, the answer is revealed. A correct guess ends the stage early.
+
+An optional hint panel appears beside the clues. Reveal either the country's continent or the colors on its flag, once per daily puzzle. The flag itself is never shown. Using the optional hint does not consume one of the three clue attempts.
 
 ## Daily puzzle behavior
 
-- The current prototype contains five sample puzzle sets in `game.js` and rotates through them by calendar day.
+- The current prototype contains five sample puzzle sets for each of the three difficulty levels in `game.js` and rotates through them by calendar day.
 - The selected set is based on the player's local calendar date. Everyone using the same local date will see the same set, but this is not tied to a single global timezone.
 - Progress is stored in `localStorage` for that date and browser. It does not sync between devices or browsers.
 - The share button copies a compact emoji result to the clipboard when the browser permits it.
@@ -47,9 +51,9 @@ Read a difficult clue and guess a country. A wrong guess reveals the next clue. 
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | Page structure, stage navigation, forms, help dialog, and accessible labels. |
+| `index.html` | Page structure, difficulty chooser, stage navigation, forms, country hint panel, help dialog, and accessible labels. |
 | `styles.css` | Visual design, typography, responsive layout, and puzzle feedback styling. |
-| `game.js` | Sample daily puzzle data, stage rules, local progress, and sharing behavior. |
+| `game.js` | Sample daily puzzle data by difficulty, stage rules, one-use country hints, local progress, and sharing behavior. |
 ## Editing puzzle content
 
 Open `game.js` and edit the `PUZZLES` list. Each entry has:
