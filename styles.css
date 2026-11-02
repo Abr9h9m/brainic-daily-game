@@ -23,3 +23,8 @@
 @media(prefers-reduced-motion:reduce){.theme-toggle,.matrix-option{transition:none}.theme-toggle:hover,.matrix-option:hover:not(:disabled){transform:none}}
 @media(max-width:520px){.date-label{display:none}}
 .theme-toggle:focus-visible,.matrix-option:focus-visible{outline:3px solid #e5b94e;outline-offset:2px}:root[data-theme="dark"] .theme-toggle:focus-visible,:root[data-theme="dark"] .matrix-option:focus-visible{outline-color:#f0cb67}
+
+/* Keep Word feedback colors visible over the dark tile surface. */
+:root[data-theme="dark"] .tile.correct{background:#2f8a51;border-color:#70cb8f;color:#fff;box-shadow:0 0 0 1px #70cb8f55}
+:root[data-theme="dark"] .tile.present{background:#e4bd49;border-color:#f2d36e;color:#1a241d;box-shadow:0 0 0 1px #f2d36e55}
+:root[data-theme="dark"] .tile.absent{background:#65726b;border-color:#89968f;color:#fff}
