@@ -1,6 +1,6 @@
 # Brainic
 
-**Three puzzles, one daily run.** Brainic is a small, mobile-friendly daily puzzle game that combines three familiar formats: a five-letter word puzzle, an odd-one-out puzzle, and a country guessing challenge.
+**Three puzzles, one daily run.** Brainic is a small, mobile-friendly daily puzzle game that combines a five-letter word puzzle, a Connections-style word grouping puzzle, and a country guessing challenge.
 
 ## Play locally
 
@@ -31,9 +31,9 @@ Guess a five-letter answer in six tries. Green means a letter is in the correct 
 
 Correctly solving the word unlocks the animated **Word Whiz** daily badge. The badge remains visible after the animation and does not replay on reload.
 
-### Stage 2 — Odd one out
+### Stage 2 — Connections
 
-Choose the item that does not share the connection among the others. The game then reveals the answer and explains the shared category.
+Sort 16 words into four groups of four. Select four related words and submit the group. Correct groups stay on the board with their category revealed. You can make four mistakes; the game calls out a “one away” guess when three of the four selected words belong together. If you run out of mistakes, the remaining groups are revealed.
 
 ### Stage 3 — Country
 
@@ -53,21 +53,19 @@ An optional hint panel appears beside the clues. Reveal either the country's con
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | Page structure, difficulty chooser, stage navigation, forms, country hint panel, help dialog, and accessible labels. |
+| `index.html` | Page structure, difficulty chooser, stage navigation, forms, Connections grid, country hint panel, help dialog, and accessible labels. |
 | `styles.css` | Visual design, typography, responsive layout, and puzzle feedback styling. |
-| `game.js` | Sample daily puzzle data by difficulty, stage rules, one-use country hints, local progress, and sharing behavior. |
+| `game.js` | Sample daily puzzle and Connections data by difficulty, stage rules, one-use country hints, local progress, and sharing behavior. |
 ## Editing puzzle content
 
-Open `game.js` and edit the `PUZZLES` list. Each entry has:
+Open `game.js` and edit the `PUZZLES` and `CONNECTION_SETS` lists. Each entry has:
 
 - `word`: the five-letter Stage 1 answer.
-- `odd.items`: the five displayed choices for Stage 2.
-- `odd.answer`: zero-based index of the odd item.
-- `odd.group`: explanation of the common relationship among the other four items.
+- `CONNECTION_SETS[difficulty][dayIndex]`: four groups, each with a `category` label and four `words`.
 - `country.answer`: accepted country name, compared case-insensitively.
 - `country.clues`: three clues, ordered from more difficult to more direct.
 
-Add enough sets to cover the intended schedule. Review word difficulty, clue accuracy, answer aliases, ambiguity, and the odd-one-out explanation before publishing a larger set. A repeated five-set rotation is only suitable as a prototype.
+Add enough sets to cover the intended schedule. Review word difficulty, clue accuracy, answer aliases, and Connections group ambiguity before publishing a larger set. A repeated five-set rotation is only suitable as a prototype.
 
 ## Current limitations and next steps
 

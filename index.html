@@ -19,7 +19,7 @@
     <section class="intro">
       <p class="eyebrow">A little curiosity, every day</p>
       <h1>Three puzzles.<br><span>One daily streak.</span></h1>
-      <p class="intro-copy">Three puzzles, one daily run. Warm up with a word, spot what doesn’t fit, then find your way to a country.</p>
+      <p class="intro-copy">Three puzzles, one daily run. Find a word, connect the clues, then discover a country.</p>
     </section>
 
     <section class="difficulty-screen" id="difficulty-screen" aria-labelledby="difficulty-title">
@@ -34,7 +34,7 @@
 
     <nav class="stage-nav hidden" id="stage-nav" aria-label="Puzzle stages">
       <button class="stage-tab active" data-stage-tab="0"><span class="tab-number">01</span><span>Word</span><i></i></button>
-      <button class="stage-tab" data-stage-tab="1" disabled><span class="tab-number">02</span><span>Odd one out</span><i></i></button>
+      <button class="stage-tab" data-stage-tab="1" disabled><span class="tab-number">02</span><span>Connections</span><i></i></button>
       <button class="stage-tab" data-stage-tab="2" disabled><span class="tab-number">03</span><span>Country</span><i></i></button>
     </nav>
 
@@ -61,10 +61,13 @@
         <p class="message" id="word-message" role="status"></p>
       </div>
 
-      <div id="odd-panel" class="puzzle-panel hidden">
-        <p class="prompt-note">Four belong together. Pick the one that doesn’t.</p>
-        <div class="odd-options" id="odd-options"></div>
-        <p class="message" id="odd-message" role="status"></p>
+      <div id="connections-panel" class="puzzle-panel hidden">
+        <div class="connections-meta"><span id="connections-progress">0 OF 4 GROUPS</span><span id="connections-mistakes">4 MISTAKES LEFT</span></div>
+        <div class="solved-groups" id="solved-groups" aria-live="polite"></div>
+        <p class="connections-prompt">Find four groups of four words that share a connection.</p>
+        <div class="connections-grid" id="connections-grid" role="group" aria-label="Select words to form a connection"></div>
+        <div class="connections-actions" id="connections-actions"><button class="clear-button" id="clear-selection" disabled>Clear</button><span class="selection-count" id="selection-count">0 selected</span><button class="primary-button" id="submit-group" disabled>Submit group <span>↗</span></button></div>
+        <p class="message" id="connections-message" role="status"></p>
       </div>
 
       <div id="country-panel" class="puzzle-panel hidden">
@@ -96,6 +99,6 @@
     <footer>Made for a curious five minutes <span>·</span> New puzzles daily</footer>
   </main>
 
-  <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="Close">×</button><p class="eyebrow">HOW TO PLAY</p><h2>Three stages, one daily run.</h2><div class="help-step"><b>01</b><p><strong>Word</strong><br>Guess the five-letter word in six tries.</p></div><div class="help-step"><b>02</b><p><strong>Odd one out</strong><br>Find the item that doesn’t share the group’s connection.</p></div><div class="help-step"><b>03</b><p><strong>Country</strong><br>Use three clues and up to three guesses. You may also reveal either the continent or the flag colors, once per puzzle. The flag image stays hidden.</p></div><p class="help-foot">Choose Beginner, Intermediate, or Expert at the start. Your level and progress stay on this device for today.</p></dialog>
+  <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="Close">×</button><p class="eyebrow">HOW TO PLAY</p><h2>Three stages, one daily run.</h2><div class="help-step"><b>01</b><p><strong>Word</strong><br>Guess the five-letter word in six tries.</p></div><div class="help-step"><b>02</b><p><strong>Connections</strong><br>Sort 16 words into four groups of four. You have four mistakes.</p></div><div class="help-step"><b>03</b><p><strong>Country</strong><br>Use three clues and up to three guesses. You may also reveal either the continent or the flag colors, once per puzzle. The flag image stays hidden.</p></div><p class="help-foot">Choose Beginner, Intermediate, or Expert at the start. Your level and progress stay on this device for today.</p></dialog>
 </body>
 </html>

@@ -22,21 +22,45 @@ const PUZZLES = {
   ]
 };
 
+const CONNECTION_SETS = {
+  beginner: [
+    [{category:'Fruits',words:['Apple','Mango','Peach','Grape']},{category:'Pets',words:['Cat','Dog','Hamster','Rabbit']},{category:'Colors',words:['Red','Blue','Green','Yellow']},{category:'Beach things',words:['Towel','Shell','Bucket','Sunscreen']}],
+    [{category:'Months with 31 days',words:['January','March','May','July']},{category:'Inner planets',words:['Mercury','Venus','Earth','Mars']},{category:'Musical instruments',words:['Guitar','Piano','Drum','Violin']},{category:'School supplies',words:['Pencil','Ruler','Eraser','Notebook']}],
+    [{category:'Seasons',words:['Spring','Summer','Autumn','Winter']},{category:'Shapes',words:['Circle','Square','Triangle','Rectangle']},{category:'Breakfast foods',words:['Cereal','Toast','Pancakes','Eggs']},{category:'Sea animals',words:['Dolphin','Shark','Whale','Octopus']}],
+    [{category:'Farm animals',words:['Cow','Pig','Sheep','Goat']},{category:'Ways to travel',words:['Car','Bus','Train','Bicycle']},{category:'Weather words',words:['Rain','Snow','Wind','Cloud']},{category:'Body parts',words:['Elbow','Knee','Ankle','Wrist']}],
+    [{category:'Birds',words:['Robin','Eagle','Duck','Owl']},{category:'Fruits',words:['Orange','Pear','Kiwi','Plum']},{category:'Tools',words:['Hammer','Wrench','Screwdriver','Pliers']},{category:'Bathroom items',words:['Soap','Shampoo','Towel','Toothbrush']}]
+  ],
+  intermediate: [
+    [{category:'___ ball',words:['Basket','Foot','Base','Volley']},{category:'Parts of a tree',words:['Bark','Root','Leaf','Branch']},{category:'Music notation',words:['Clef','Staff','Rest','Note']},{category:'Winter activities',words:['Ski','Sled','Skate','Snowboard']}],
+    [{category:'Metals',words:['Gold','Silver','Copper','Tin']},{category:'Ways to cut food',words:['Chop','Dice','Mince','Slice']},{category:'Mystery terms',words:['Clue','Suspect','Motive','Alibi']},{category:'Times of day',words:['Dawn','Noon','Dusk','Midnight']}],
+    [{category:'Polygons',words:['Triangle','Rectangle','Hexagon','Octagon']},{category:'Kitchen utensils',words:['Whisk','Spatula','Ladle','Tongs']},{category:'Space terms',words:['Orbit','Comet','Galaxy','Nebula']},{category:'Literary forms',words:['Novel','Poem','Essay','Play']}],
+    [{category:'Major rivers',words:['Nile','Amazon','Danube','Mekong']},{category:'Hair and skin products',words:['Shampoo','Conditioner','Soap','Lotion']},{category:'String instruments',words:['Violin','Cello','Viola','Double bass']},{category:'Trees',words:['Pine','Maple','Oak','Birch']}],
+    [{category:'Units of mass',words:['Pound','Ounce','Gram','Kilogram']},{category:'Planets',words:['Mercury','Venus','Mars','Saturn']},{category:'Woodwind instruments',words:['Flute','Clarinet','Oboe','Bassoon']},{category:'Pasta shapes',words:['Penne','Fusilli','Rigatoni','Farfalle']}]
+  ],
+  expert: [
+    [{category:'Temperature scales',words:['Celsius','Kelvin','Fahrenheit','Rankine']},{category:'Birds of prey',words:['Osprey','Harrier','Kestrel','Kite']},{category:'Baroque composers',words:['Bach','Handel','Vivaldi','Telemann']},{category:'Billiards terms',words:['Cue','Ball','Pocket','Rack']}],
+    [{category:'Voice ranges',words:['Soprano','Alto','Tenor','Bass']},{category:'Zodiac signs',words:['Aries','Taurus','Leo','Virgo']},{category:'Four-color printing',words:['Cyan','Magenta','Yellow','Black']},{category:'Scale degrees',words:['Tonic','Dominant','Subdominant','Mediant']}],
+    [{category:'Poetic feet',words:['Iamb','Trochee','Dactyl','Spondee']},{category:'Herbs',words:['Dill','Thyme','Sage','Oregano']},{category:'Golf scores',words:['Birdie','Bogey','Eagle','Par']},{category:'Communication systems',words:['Morse','Braille','Semaphore','Fingerspelling']}],
+    [{category:'Parts of a flower',words:['Stamen','Pistil','Sepal','Petal']},{category:'Short story traditions',words:['Myth','Fable','Legend','Parable']},{category:'Units of liquid volume',words:['Pint','Quart','Gallon','Cup']},{category:'Knitting terms',words:['Knit','Purl','Cast-on','Bind-off']}],
+    [{category:'Frozen precipitation',words:['Sleet','Hail','Graupel','Snow']},{category:'Fish species',words:['Mackerel','Cod','Haddock','Pollock']},{category:'Ancient epics',words:['Iliad','Odyssey','Aeneid','Mahabharata']},{category:'Cloud types',words:['Cirrus','Cumulus','Stratus','Nimbus']}]
+  ]
+};
+
 const today = new Date();
 const dayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 const epoch = Date.UTC(2026, 0, 1);
 const dayNumber = Math.floor((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()) - epoch) / 86400000);
 const puzzleIndex = ((dayNumber % 5) + 5) % 5;
 const storageKey = `brainic:${dayKey}`;
-const fresh = () => ({ difficulty:null, started:false, stage:0, wordGuesses:[], wordDone:false, wordWon:false, wordCelebrationSeen:false, oddDone:false, oddWon:false, countryTries:0, countryDone:false, countryWon:false, countryHint:null, oddSelected:null });
+const fresh = () => ({ gameVersion:3, difficulty:null, started:false, stage:0, wordGuesses:[], wordDone:false, wordWon:false, wordCelebrationSeen:false, connectionsBoard:[], connectionsSelected:[], connectionsSolved:[], connectionsMistakes:4, connectionsDone:false, connectionsMessage:'', countryTries:0, countryDone:false, countryWon:false, countryHint:null });
 let state;
 try {
   state = { ...fresh(), ...JSON.parse(localStorage.getItem(storageKey) || '{}') };
-  if (!state.difficulty) state = fresh();
+  if (state.gameVersion !== 3 || !state.difficulty) state = fresh();
 } catch { state = fresh(); }
 const $ = id => document.getElementById(id);
 const save = () => localStorage.setItem(storageKey, JSON.stringify(state));
-const currentPuzzle = () => state.difficulty ? PUZZLES[state.difficulty][puzzleIndex] : null;
+const currentPuzzle = () => state.difficulty ? { ...PUZZLES[state.difficulty][puzzleIndex], connections:CONNECTION_SETS[state.difficulty][puzzleIndex] } : null;
 
 function render() {
   $('date-label').textContent = new Intl.DateTimeFormat('en', { weekday:'long', month:'long', day:'numeric' }).format(today);
@@ -54,21 +78,21 @@ function render() {
   const puzzle = currentPuzzle();
   document.querySelectorAll('[data-stage-tab]').forEach((tab, i) => {
     tab.classList.toggle('active', i === state.stage);
-    tab.classList.toggle('complete', (i === 0 && state.wordDone) || (i === 1 && state.oddDone) || (i === 2 && state.countryDone));
+    tab.classList.toggle('complete', (i === 0 && state.wordDone) || (i === 1 && state.connectionsDone) || (i === 2 && state.countryDone));
     tab.disabled = i > state.stage;
   });
   $('progress-pill').textContent = `${state.stage + 1} of 3`;
-  $('stage-kicker').textContent = `STAGE 0${state.stage + 1} · ${['WORD','ODD ONE OUT','COUNTRY'][state.stage]}`;
+  $('stage-kicker').textContent = `STAGE 0${state.stage + 1} · ${['WORD','CONNECTIONS','COUNTRY'][state.stage]}`;
   $('word-panel').classList.toggle('hidden', state.stage !== 0);
-  $('odd-panel').classList.toggle('hidden', state.stage !== 1);
+  $('connections-panel').classList.toggle('hidden', state.stage !== 1);
   $('country-panel').classList.toggle('hidden', state.stage !== 2);
-  const titles = ['Find the five-letter word','Which one doesn’t belong?','Name the country'];
-  const descriptions = ['You have six tries. Each guess must be a five-letter word.','Find the item that doesn’t share the connection.','Three clues, three guesses, and one optional hint.'];
+  const titles = ['Find the five-letter word','Connect the words','Name the country'];
+  const descriptions = ['You have six tries. Each guess must be a five-letter word.','Sort all 16 words into four groups of four.','Three clues, three guesses, and one optional hint.'];
   $('stage-title').textContent = titles[state.stage]; $('stage-description').textContent = descriptions[state.stage];
-  $('footer-hint').textContent = ['Green means right letter, right place.','Select the odd one out.','Reveal the continent or flag colors if you need a nudge.'][state.stage];
-  $('continue-button').classList.toggle('hidden', !((state.stage === 0 && state.wordDone) || (state.stage === 1 && state.oddDone)));
+  $('footer-hint').textContent = ['Green means right letter, right place.','Each word belongs to exactly one group.','Reveal the continent or flag colors if you need a nudge.'][state.stage];
+  $('continue-button').classList.toggle('hidden', !((state.stage === 0 && state.wordDone) || (state.stage === 1 && state.connectionsDone)));
   $('continue-button').textContent = state.stage === 0 ? 'Continue to stage 2 →' : 'Continue to stage 3 →';
-  drawWord(puzzle); drawOdd(puzzle); drawCountry(puzzle);
+  drawWord(puzzle); drawConnections(puzzle); drawCountry(puzzle);
   $('word-input').disabled = state.wordDone; $('country-input').disabled = state.countryDone;
 }
 
@@ -88,11 +112,67 @@ function drawWord(puzzle) {
   if (state.wordDone) $('word-message').textContent = state.wordWon ? `Lovely. The word was ${puzzle.word}.` : `The word was ${puzzle.word}.`;
 }
 
-function drawOdd(puzzle) {
-  const box=$('odd-options'); box.innerHTML='';
-  puzzle.odd.items.forEach((item,i)=>{ const button=document.createElement('button'); button.className='odd-option'; button.textContent=item; button.disabled=state.oddDone; if(state.oddSelected===i) button.classList.add('selected'); if(state.oddDone&&i===puzzle.odd.answer) button.classList.add('reveal'); button.onclick=()=>selectOdd(i,puzzle); box.append(button); });
-  if(state.oddDone) $('odd-message').textContent = state.oddWon ? `That's it! ${puzzle.odd.group}` : `The answer was ${puzzle.odd.items[puzzle.odd.answer]}. ${puzzle.odd.group}`;
+function shuffle(items) {
+  const result=[...items];
+  for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}
+  return result;
 }
+
+function drawConnections(puzzle) {
+  if(!Array.isArray(state.connectionsBoard)||state.connectionsBoard.length!==16){state.connectionsBoard=shuffle(puzzle.connections.flatMap(group=>group.words));save();}
+  const solved=$('solved-groups');solved.innerHTML='';
+  const revealAll=state.connectionsDone&&state.connectionsMistakes===0;
+  puzzle.connections.forEach((group,index)=>{
+    if(!state.connectionsSolved.includes(index)&&!revealAll)return;
+    const row=document.createElement('div');row.className=`solved-group group-color-${index}`;
+    const category=document.createElement('strong');category.textContent=group.category;
+    const words=document.createElement('span');words.textContent=group.words.join(' · ');
+    row.append(category,words);solved.append(row);
+  });
+  $('connections-progress').textContent=`${state.connectionsSolved.length} OF 4 GROUPS FOUND`;
+  $('connections-mistakes').textContent=revealAll?'ANSWERS REVEALED':`${state.connectionsMistakes} ${state.connectionsMistakes===1?'MISTAKE':'MISTAKES'} LEFT`;
+  const grid=$('connections-grid');grid.innerHTML='';
+  const removed=new Set(state.connectionsSolved.flatMap(index=>puzzle.connections[index].words));
+  if(revealAll)puzzle.connections.forEach(group=>group.words.forEach(word=>removed.add(word)));
+  state.connectionsBoard.filter(word=>!removed.has(word)).forEach(word=>{
+    const button=document.createElement('button');button.type='button';button.className='connection-tile';button.textContent=word;
+    const selected=state.connectionsSelected.includes(word);button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));button.disabled=state.connectionsDone;
+    button.addEventListener('click',()=>toggleConnectionWord(word));grid.append(button);
+  });
+  $('selection-count').textContent=`${state.connectionsSelected.length} selected`;
+  $('clear-selection').disabled=state.connectionsSelected.length===0||state.connectionsDone;
+  $('submit-group').disabled=state.connectionsSelected.length!==4||state.connectionsDone;
+  $('connections-message').textContent=state.connectionsMessage;
+  grid.classList.toggle('hidden',revealAll);
+  $('connections-actions').classList.toggle('hidden',revealAll);
+}
+
+function toggleConnectionWord(word) {
+  if(state.connectionsDone)return;
+  if(state.connectionsSelected.includes(word))state.connectionsSelected=state.connectionsSelected.filter(item=>item!==word);
+  else if(state.connectionsSelected.length<4)state.connectionsSelected.push(word);
+  state.connectionsMessage='';save();render();
+}
+
+function submitConnectionGroup() {
+  if(state.connectionsDone||state.connectionsSelected.length!==4)return;
+  const puzzle=currentPuzzle();const selected=new Set(state.connectionsSelected);
+  const match=puzzle.connections.findIndex((group,index)=>!state.connectionsSolved.includes(index)&&group.words.every(word=>selected.has(word)));
+  if(match>=0){
+    state.connectionsSolved.push(match);state.connectionsSelected=[];
+    state.connectionsDone=state.connectionsSolved.length===4;
+    state.connectionsMessage=state.connectionsDone?'All four connections found. Brilliant!':'Nice connection! Find the next group.';
+  }else{
+    state.connectionsMistakes--;
+    const oneAway=puzzle.connections.some((group,index)=>!state.connectionsSolved.includes(index)&&group.words.filter(word=>selected.has(word)).length===3);
+    state.connectionsMessage=oneAway?'One away! Those words are almost a group.':`Not quite. ${state.connectionsMistakes} ${state.connectionsMistakes===1?'mistake':'mistakes'} left.`;
+    state.connectionsSelected=[];
+    if(state.connectionsMistakes===0){state.connectionsDone=true;state.connectionsMessage='Out of mistakes — the remaining connections are revealed.';}
+  }
+  save();render();
+}
+
+function clearConnectionSelection(){state.connectionsSelected=[];state.connectionsMessage='';save();render();}
 
 function drawCountry(puzzle) {
   const tries=Math.min(state.countryTries,2); $('country-clue').textContent=puzzle.country.clues[tries];
@@ -111,10 +191,6 @@ function drawCountry(puzzle) {
   $('flag-hint').classList.toggle('revealed', state.countryHint === 'flag');
 }
 
-function selectOdd(i,puzzle) {
-  state.oddSelected=i; state.oddDone=true; state.oddWon=i===puzzle.odd.answer; save(); render();
-}
-
 document.querySelectorAll('.difficulty-option').forEach(button=>button.addEventListener('click',()=>{state.difficulty=button.dataset.difficulty;state.started=true;save();render();}));
 $('word-form').addEventListener('submit', e=>{
   e.preventDefault(); if(state.wordDone)return; const guess=$('word-input').value.trim().toUpperCase();
@@ -124,6 +200,8 @@ $('word-form').addEventListener('submit', e=>{
   if(guess===answer || state.wordGuesses.length>=6){state.wordDone=true;state.wordWon=guess===answer;if(guess!==answer)$('word-message').textContent=`The word was ${answer}.`;}
   save();render();
 });
+$('clear-selection').addEventListener('click',clearConnectionSelection);
+$('submit-group').addEventListener('click',submitConnectionGroup);
 $('country-form').addEventListener('submit', e=>{
   e.preventDefault(); if(state.countryDone)return; const guess=$('country-input').value.trim().toLowerCase();
   if(!guess){$('country-message').textContent='Enter a country name to guess.';$('country-message').classList.add('error');return;}
@@ -135,7 +213,7 @@ $('continue-button').addEventListener('click',()=>{state.stage=Math.min(state.st
 document.querySelectorAll('[data-stage-tab]').forEach(tab=>tab.addEventListener('click',()=>{const target=Number(tab.dataset.stageTab);if(target<=state.stage){state.stage=target;save();render();}}));
 $('help-button').addEventListener('click',()=>$('help-dialog').showModal()); $('close-help').addEventListener('click',()=>$('help-dialog').close());
 $('share-button').addEventListener('click',async()=>{
-  const result=`Brainic ${dayKey} · ${state.difficulty}\n${state.wordDone?(state.wordWon?'🟩':'🟨'):'⬜'} Word  ·  ${state.oddDone?(state.oddWon?'🟩':'🟨'):'⬜'} Odd one out  ·  ${state.countryDone?(state.countryWon?'🟩':'🟨'):'⬜'} Country`;
+  const result=`Brainic ${dayKey} · ${state.difficulty}\n${state.wordDone?(state.wordWon?'🟩':'🟨'):'⬜'} Word  ·  ${state.connectionsDone?(state.connectionsMistakes>0?'🟩':'🟨'):'⬜'} Connections  ·  ${state.countryDone?(state.countryWon?'🟩':'🟨'):'⬜'} Country`;
   try { await navigator.clipboard.writeText(result); $('share-button').innerHTML='Copied! ✓'; setTimeout(()=>$('share-button').innerHTML='Share result <span>↗</span>',1600); } catch { window.prompt('Copy your result:',result); }
 });
 
