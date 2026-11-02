@@ -23,7 +23,7 @@ The website is static, so no PHP or server configuration is needed. Anyone with 
 
 ## How to play
 
-At the beginning of each daily run, choose Beginner, Intermediate, or Expert. Beginner uses familiar words, obvious odd-one-out categories, and more direct country clues. Intermediate is balanced. Expert uses less common words, subtler categories, and more demanding clues. Your selected level is saved for the day in this browser.
+At the beginning of each daily run, choose Beginner, Intermediate, or Expert. Beginner uses familiar words, obvious odd-one-out categories, and more direct country clues. Intermediate is balanced. Expert uses less common words, subtler categories, and more demanding clues. Your selected level is saved for the day in this browser. The Word stage selects from a 598-word answer bank in a deterministic shuffled order per level, so everyone on the same local date and level receives the same word, without repeats until that level's bank has cycled once (598 days).
 
 ### Stage 1 — Word
 
@@ -33,7 +33,7 @@ Correctly solving the word unlocks the animated **Word Whiz** badge. The collect
 
 ### Stage 2 — Connections
 
-Sort 16 words into four groups of four. Select four related words and submit the group. Correct groups stay on the board with their category revealed. You can make four mistakes; the game calls out a “one away” guess when three of the four selected words belong together. If you run out of mistakes, the remaining groups are revealed.
+Sort 16 words into four groups of four. Select four related words and submit the group. Correct groups stay on the board with their category revealed. You can make four mistakes; the game calls out a “one away” guess when three of the four selected words belong together. If you run out of mistakes, the remaining groups are revealed. Find all four groups to earn **Pattern Finder**; solve them without a mistake to also earn **Flawless Link**.
 
 ### Stage 3 — Country
 
@@ -43,15 +43,17 @@ An optional hint panel appears beside the clues. Reveal either the country's con
 
 ### Stage 4 — Pattern matrix
 
-Study a 3×3 grid of shapes with the final tile missing. Pick the option that completes its pattern. Beginner puzzles use a clear count-and-shape rule; Intermediate puzzles shift the count pattern between rows; Expert puzzles combine count, shape, and filled-versus-outline rules. A short explanation appears after the choice. Correctly solving the matrix earns the **Pattern Seeker** badge. These are IQ-style brain teasers, not a standardized IQ test or IQ score.
+Study a 3×3 pattern grid with the final tile missing. The daily puzzle can use shapes, colors, arrow directions, or number relationships, with a mix of rule types at every difficulty. Beginner includes direct visual patterns and addition; Intermediate adds alternating fills and multiplication; Expert combines overlapping shape rules and more demanding number patterns. There are 16 matrix puzzles per difficulty before the cycle repeats. A short explanation appears after the choice. Correctly solving the matrix earns the **Pattern Seeker** badge. Completing the full daily run also reveals a rotating affirmation. These are brain teasers, not a standardized IQ test or IQ score.
 
 ## Display theme
 
 Use the **Dark** / **Light** control in the top bar to switch themes. The choice is saved in this browser and applies across reloads and daily puzzles.
 
+On the first game, choose a dog, cat, bird, or whale after choosing a difficulty. The choice is saved in this browser, so later games ask only for a difficulty and bring the same pet back. Each illustrated pet wanders to a new spot every 30 seconds. Double-click anywhere to guide the pet to that spot. Each has its own animated trail, and hover, focus, or tap brings up a kind message.
+
 ## Daily puzzle behavior
 
-- The current prototype contains five sample puzzle sets for each of the three difficulty levels in `game.js` and rotates through them by calendar day.
+- Word answers cycle through 598 words per difficulty. Connections and Country rotate through five sample sets per difficulty, and Pattern rotates through 16 puzzles per difficulty.
 - The selected set is based on the player's local calendar date. Everyone using the same local date will see the same set, but this is not tied to a single global timezone.
 - Daily game progress and the badge collection are stored in `localStorage` for that browser. They do not sync between devices or browsers.
 - The share button copies a compact emoji result to the clipboard when the browser permits it.
@@ -64,20 +66,22 @@ Use the **Dark** / **Light** control in the top bar to switch themes. The choice
 | `index.html` | Page structure, difficulty chooser, four-stage navigation, puzzle controls, pattern grid, badge collection and help dialogs, theme toggle, and accessible labels. |
 | `styles.css` | Visual design, typography, responsive layout, light and dark themes, puzzle feedback, badge collection, and matrix styling. |
 | `game.js` | Daily puzzle data, four stage rules, theme preference, local progress, badge earning and inventory storage, and sharing behavior. |
+| `assets/pets/` | Four detailed SVG companions used for the saved, animated dog, cat, bird, and whale. |
 ## Editing puzzle content
 
-Open `game.js` and edit the `PUZZLES` and `CONNECTION_SETS` lists. Each entry has:
+Open `game.js` and edit `DAILY_WORD_BANK`, `PUZZLES`, `CONNECTION_SETS`, and `MATRIX_SETS`. Each entry has:
 
-- `word`: the five-letter Stage 1 answer.
+- `DAILY_WORD_BANK`: unique five-letter Stage 1 answers, assigned in a shuffled cycle.
 - `CONNECTION_SETS[difficulty][dayIndex]`: four groups, each with a `category` label and four `words`.
+- `MATRIX_SETS[difficulty]`: daily pattern puzzles with eight visible cells, one `answer`, four `options`, and an `explanation`. Builders create shape, color, arrow, and number patterns.
 - `country.answer`: accepted country name, compared case-insensitively.
 - `country.clues`: three clues, ordered from more difficult to more direct.
 
-Add enough sets to cover the intended schedule. Review word difficulty, clue accuracy, answer aliases, and Connections group ambiguity before publishing a larger set. A repeated five-set rotation is only suitable as a prototype.
+Review word difficulty, clue accuracy, answer aliases, and Connections group ambiguity before publishing a larger set. Connections and country currently use five sample sets per level; each matrix difficulty has 16 daily patterns across four puzzle types.
 
 ## Current limitations and next steps
 
-- Replace the five sample sets with a larger, carefully reviewed daily puzzle bank.
+- Expand and review the daily word answer bank, and build larger Connections and country puzzle banks.
 - Add a real word list so invalid five-letter guesses can be rejected and duplicate-letter feedback can be made fully Wordle-accurate.
 - Accept common country aliases and alternate spellings.
 - Decide on one global puzzle timezone if all players should always receive the same daily puzzle.

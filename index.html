@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f6f3ec">
-  <title>Brainic </title>
+  <meta name="theme-color" content="#f0edfc">
+  <title>Brainic — Playful Daily Puzzles</title>
   <link rel="stylesheet" href="styles.css">
   <script src="game.js" defer></script>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="#top" aria-label="Brainic home"><span class="brand-mark">B</span> Brainic</a>
+    <a class="brand" href="#top" aria-label="Brainic home"><span class="brand-mark">B</span> BRAINIC</a>
     <div class="date-label" id="date-label"></div>
     <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode"><span id="theme-icon" aria-hidden="true">☾</span><span id="theme-label">Dark</span></button>
     <button class="badge-collection-button" id="badges-button" aria-label="Open badge collection"><span class="inventory-medal" aria-hidden="true">✦</span><span>Badges</span><span class="badge-count" id="badge-count">0</span></button>
@@ -19,18 +19,44 @@
 
   <main id="top">
     <section class="intro">
-      <p class="eyebrow">A little curiosity, every day</p>
-      <h1>Four puzzles.<br><span>One daily streak.</span></h1>
-      <p class="intro-copy">Four puzzles, one daily run. Find a word, connect the clues, discover a country, then complete a pattern.</p>
+      <div class="intro-copy-block">
+        <p class="eyebrow">YOUR DAILY SPARK OF CURIOSITY</p>
+        <h1>Play with<br><span>your brain.</span></h1>
+        <p class="intro-copy">Four quick challenges. One fresh little adventure every day.</p>
+      </div>
+      <div class="intro-art" aria-hidden="true">
+        <span class="intro-orbit"></span>
+        <span class="intro-spark intro-spark-one">✦</span><span class="intro-spark intro-spark-two">✳</span>
+        <div class="intro-mosaic">
+          <div class="intro-tile intro-tile-word"><span>WORD</span><strong>A</strong></div>
+          <div class="intro-tile intro-tile-links"><span>LINKS</span><strong>↗</strong></div>
+          <div class="intro-tile intro-tile-world"><span>WORLD</span><strong>◎</strong></div>
+          <div class="intro-tile intro-tile-pattern"><span>PATTERN</span><strong>◈</strong></div>
+        </div>
+      </div>
     </section>
 
     <section class="difficulty-screen" id="difficulty-screen" aria-labelledby="difficulty-title">
-      <p class="eyebrow">TODAY'S GAME</p>
-      <h2 id="difficulty-title">Choose your level</h2>
-      <div class="difficulty-options" role="group" aria-label="Choose a difficulty">
-        <button class="difficulty-option" data-difficulty="beginner" aria-pressed="false"><span class="difficulty-symbol" aria-hidden="true">☀</span><strong>Beginner</strong></button>
-        <button class="difficulty-option" data-difficulty="intermediate" aria-pressed="false"><span class="difficulty-symbol" aria-hidden="true">◒</span><strong>Intermediate</strong></button>
-        <button class="difficulty-option" data-difficulty="expert" aria-pressed="false"><span class="difficulty-symbol" aria-hidden="true">✦</span><strong>Expert</strong></button>
+      <div id="difficulty-picker">
+        <p class="eyebrow">TODAY'S GAME</p>
+        <h2 id="difficulty-title">Choose your level</h2>
+        <div class="difficulty-options" role="group" aria-label="Choose a difficulty">
+          <button class="difficulty-option" data-difficulty="beginner" aria-pressed="false"><span class="difficulty-symbol" aria-hidden="true">☀</span><strong>Beginner</strong><small>Easy does it</small></button>
+          <button class="difficulty-option" data-difficulty="intermediate" aria-pressed="false"><span class="difficulty-symbol" aria-hidden="true">◒</span><strong>Intermediate</strong><small>A little twist</small></button>
+          <button class="difficulty-option" data-difficulty="expert" aria-pressed="false"><span class="difficulty-symbol" aria-hidden="true">✦</span><strong>Expert</strong><small>Bring your focus</small></button>
+        </div>
+      </div>
+      <div class="pet-choice-step hidden" id="pet-choice-step" aria-labelledby="pet-choice-title">
+        <p class="eyebrow">YOUR LITTLE SIDEKICK</p>
+        <h2 id="pet-choice-title">Which pet would you like?</h2>
+        <p class="pet-choice-copy">Pick your companion. They’ll stay with you on future visits.</p>
+        <p class="pet-fyi"><strong>FYI:</strong> Your pet wanders every 30 seconds. Double-click anywhere to send them to a spot, and hover or focus on them for a kind message.</p>
+        <div class="pet-options" role="group" aria-label="Choose your pet">
+          <button class="pet-option" type="button" data-pet-option="dog"><img class="pet-option-art" src="assets/pets/dog.svg" alt=""><strong>Dog</strong><small>Happy paws</small></button>
+          <button class="pet-option" type="button" data-pet-option="cat"><img class="pet-option-art" src="assets/pets/cat.svg" alt=""><strong>Cat</strong><small>Little sparkles</small></button>
+          <button class="pet-option" type="button" data-pet-option="bird"><img class="pet-option-art" src="assets/pets/bird.svg" alt=""><strong>Bird</strong><small>Feather trails</small></button>
+          <button class="pet-option" type="button" data-pet-option="whale"><img class="pet-option-art" src="assets/pets/whale.svg" alt=""><strong>Whale</strong><small>Bubbles & waves</small></button>
+        </div>
       </div>
     </section>
 
@@ -77,7 +103,7 @@
         <p class="connections-prompt">Find four groups of four words that share a connection.</p>
         <div class="connections-grid" id="connections-grid" role="group" aria-label="Select words to form a connection"></div>
         <div class="connections-actions" id="connections-actions"><button class="clear-button" id="clear-selection" disabled>Clear</button><span class="selection-count" id="selection-count">0 selected</span><button class="primary-button" id="submit-group" disabled>Submit group <span>↗</span></button></div>
-        <p class="message" id="connections-message" role="status"></p>
+        <p class="message connections-message" id="connections-message" role="status"></p>
       </div>
 
       <div id="country-panel" class="puzzle-panel hidden">
@@ -103,7 +129,7 @@
       </div>
 
       <div id="matrix-panel" class="puzzle-panel hidden">
-        <p class="matrix-prompt">Study the pattern in each row and column. Which tile completes the grid?</p>
+        <p class="matrix-prompt">Study the pattern across the grid. Which tile completes it?</p>
         <div class="matrix-grid" id="matrix-grid" role="img" aria-label="Pattern matrix with one missing tile"></div>
         <p class="matrix-choice-label">CHOOSE THE MISSING TILE</p>
         <div class="matrix-options" id="matrix-options" role="group" aria-label="Answer choices"></div>
@@ -114,11 +140,17 @@
       <div class="stage-footer"><span id="footer-hint">Green means right letter, right place.</span><button class="text-button hidden" id="continue-button">Continue to stage 2 <span>→</span></button></div>
     </section>
 
-    <section class="below-card hidden" id="below-card"><div class="streak-icon">✳</div><p><strong>Four little challenges complete.</strong><br>Come back tomorrow for a new set.</p><button id="share-button" class="share-button">Share result <span>↗</span></button></section>
+    <section class="below-card hidden" id="below-card"><div class="streak-icon">✳</div><div class="completion-copy"><p><strong>Four little challenges complete.</strong><br>Come back tomorrow for a new set.</p><p class="affirmation-label">TODAY’S AFFIRMATION</p><p class="daily-affirmation" id="daily-affirmation" aria-live="polite"></p></div><button id="share-button" class="share-button">Share result <span>↗</span></button></section>
     <footer>Made for a curious five minutes <span>·</span> New puzzles daily</footer>
   </main>
 
+  <button class="running-pet hidden" id="running-pet" type="button" aria-label="Your game pet. Hover, focus, or tap for a kind message." aria-describedby="pet-message" aria-expanded="false">
+    <span class="pet-message" id="pet-message" aria-live="polite">You bring a little warmth wherever you go.</span>
+    <span class="pet-effects" aria-hidden="true"><span></span><span></span><span></span></span>
+    <img class="pet-illustration" id="pet-illustration" src="assets/pets/cat.svg" alt="" aria-hidden="true">
+  </button>
+
   <dialog id="badge-dialog" class="badge-dialog"><button class="dialog-close" id="close-badges" aria-label="Close badge collection">×</button><p class="eyebrow">YOUR COLLECTION</p><h2>Badges</h2><p class="badge-summary" id="badge-summary">No badges yet</p><div class="badge-inventory" id="badge-inventory"></div><p class="help-foot">Badges are saved in this browser.</p></dialog>
-  <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="Close">×</button><p class="eyebrow">HOW TO PLAY</p><h2>Four stages, one daily run.</h2><div class="help-step"><b>01</b><p><strong>Word</strong><br>Guess the five-letter word in six tries. Solve it to earn a Word Whiz badge.</p></div><div class="help-step"><b>02</b><p><strong>Connections</strong><br>Sort 16 words into four groups of four. Find all four groups to earn a Pattern Finder badge.</p></div><div class="help-step"><b>03</b><p><strong>Country</strong><br>Use three clues and up to three guesses. Guess the country to earn a World Scout badge.</p></div><div class="help-step"><b>04</b><p><strong>Pattern</strong><br>Find the rule in the shape grid and choose the tile that completes it. Solve it to earn a Pattern Seeker badge.</p></div><p class="help-foot">Choose Beginner, Intermediate, or Expert at the start. Your level and progress stay on this device for today.</p></dialog>
+  <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="Close">×</button><p class="eyebrow">HOW TO PLAY</p><h2>Four stages, one daily run.</h2><div class="help-step"><b>01</b><p><strong>Word</strong><br>Guess the five-letter word in six tries. Solve it to earn a Word Whiz badge.</p></div><div class="help-step"><b>02</b><p><strong>Connections</strong><br>Sort 16 words into four groups of four. Find all four groups to earn a Pattern Finder badge.</p></div><div class="help-step"><b>03</b><p><strong>Country</strong><br>Use three clues and up to three guesses. Guess the country to earn a World Scout badge.</p></div><div class="help-step"><b>04</b><p><strong>Pattern</strong><br>Find the rule in the shape grid and choose the tile that completes it. Solve it to earn a Pattern Seeker badge.</p></div><p class="help-foot pet-help-tip"><strong>Pet tip:</strong> Your pet wanders to a new spot every 30 seconds. Double-click anywhere to guide them, and hover or focus for a kind message.</p><p class="help-foot">Choose Beginner, Intermediate, or Expert at the start. Your level and progress stay on this device for today.</p></dialog>
 </body>
 </html>

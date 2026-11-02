@@ -22,6 +22,31 @@ const PUZZLES = {
   ]
 };
 
+// A shared answer pool gives the Word stage a fresh answer each day instead
+// of cycling through the five sample answers in the level data above.
+const DAILY_WORD_BANK = `ABOUT ABOVE ABUSE ACTOR ACUTE ADAPT ADEPT ADMIT ADOPT ADULT AFTER AGAIN AGENT AGILE AGING AGREE AHEAD ALARM ALBUM ALERT ALIEN ALIGN ALIKE ALIVE ALLOW ALONE ALONG ALTER AMBER AMEND AMONG AMPLE AMUSE ANGEL ANGER ANGLE ANGRY APART APPLE APPLY ARENA ARGUE ARISE ARMOR AROMA ARRAY ASIDE ASSET ATLAS AUDIO AVOID AWARE AWFUL BADGE BAKER BASIC BASIL BEACH BEGIN BEING BELOW BENCH BERRY BIRTH BLACK BLAME BLANK BLAST BLAZE BLEND BLESS BLIND BLOCK BLOOD BLOOM BOARD BOOST BOOTH BOUND BRAIN BRAND BRAVE BREAD BREAK BRICK BRIDE BRIEF BRING BROAD BROKE BROWN BUILD CABLE CANDY CARRY CATCH CAUSE CEDAR CHAIN CHAIR CHALK CHARM CHART CHASE CHEAP CHECK CHEEK CHEER CHEST CHIEF CHILD CHILI CHINA CHIME CHORD CIGAR CIVIC CIVIL CLAIM CLASS CLEAN CLEAR CLERK CLICK CLIFF CLIMB CLOCK CLOSE CLOTH CLOUD COACH COAST COLOR COMET COMIC CORAL COUNT COURT COVER CRAFT CRANE CRASH CREAM CRIME CRISP CROSS CROWD CROWN CURVE CYCLE DAILY DANCE DEBUT DELAY DELTA DEPTH DIARY DIGIT DINER DIRTY DOING DONOR DOUBT DOUGH DRAFT DRAMA DRAWN DREAM DRESS DRIED DRINK DRIVE DROWN EAGER EARLY EARTH EIGHT ELDER ELECT EMAIL EMPTY ENEMY ENJOY ENTER ENTRY EQUAL ERROR EVENT EVERY EXACT EXTRA FAITH FALSE FANCY FAULT FEAST FENCE FEVER FIELD FIFTH FIFTY FIGHT FINAL FIRST FIXED FLAME FLASH FLEET FLESH FLOAT FLOOD FLOOR FLOUR FLUID FOCUS FORCE FORGE FORTH FORTY FORUM FOUND FRAME FRANK FRAUD FRESH FRONT FRUIT FUNNY GIANT GIVEN GLASS GLEAM GLIDE GLOBE GLOOM GLORY GLOVE GRACE GRADE GRAIN GRAND GRANT GRAPE GRASP GRASS GREAT GREEN GREET GRIEF GRILL GRIND GROAN GROUP GROVE GROWN GUARD GUESS GUEST GUIDE GUILT HABIT HAPPY HEART HEAVY HONEY HONOR HORSE HOTEL HOUSE HUMAN HUMOR HURRY IDEAL IMAGE INDEX INNER INPUT ISSUE IVORY JELLY JOINT JUDGE JUICE KNIFE KNOCK KNOWN LABEL LABOR LARGE LASER LATER LAUGH LAYER LEARN LEAST LEAVE LEGAL LEMON LEVEL LIGHT LIMIT LINEN LIVER LOCAL LOGIC LOOSE LUCKY LUNCH LYING MAGIC MAJOR MAKER MARCH MATCH MAYBE MAYOR MEANT MEDAL MEDIA MELON MERCY METAL METER MIGHT MINOR MINUS MODEL MONEY MONTH MORAL MOTOR MOUNT MOUSE MOUTH MOVIE MUSIC NAIVE NAKED NERVE NEVER NEWER NIGHT NINTH NOBLE NOISE NORTH NOVEL NURSE OCCUR OCEAN OFFER OFTEN OLDER OLIVE ORDER OTHER OWNER PAINT PANEL PAPER PARTY PEACE PEACH PEARL PHASE PHONE PHOTO PIANO PIECE PILOT PITCH PLACE PLAIN PLANE PLANT PLATE POINT POWER PRESS PRICE PRIDE PRIME PRINT PRIOR PRIZE PROOF PROUD PROVE QUEEN QUICK QUIET QUITE QUOTA RADIO RAISE RALLY RANGE RAPID RATIO REACH REACT READY REALM REBEL REFER RELAX REPAY REPLY RIGHT RIGID RIVAL RIVER ROBOT ROCKY ROGUE ROUGH ROUND ROUTE ROYAL RUGBY RULER RURAL SADLY SAINT SALAD SCALE SCARE SCENE SCOPE SCORE SENSE SERVE SEVEN SHALL SHAPE SHARE SHARP SHEEP SHEER SHEET SHELF SHELL SHIFT SHINE SHIRT SHOCK SHOES SHOOT SHORT SHOWN SIGHT SINCE SIXTH SKILL SKIRT SLEEP SLICE SLIDE SLOPE SMALL SMART SMILE SMOKE SNAKE SOLAR SOLID SOLVE SOUND SOUTH SPACE SPARE SPEAK SPEED SPEND SPENT SPICE SPIKE SPINE SPLIT SPOKE SPORT SPRAY SQUAD STAFF STAGE STAIN STAKE STALE STAND START STATE STEAM STEEL STEEP STEER STEPS STICK STILL STOCK STONE STOOD STORE STORM STORY STRIP STUDY STUFF STYLE SUGAR SUITE SUPER SWEAR SWEET SWIFT TABLE TAKEN TASTE TEACH TEETH TENSE THANK THEME THERE THICK THING THINK THIRD THOSE THREE THREW THUMB TIGER TIGHT TIMER TIRED TITLE TODAY TOKEN TOOTH TOTAL TOUCH TOUGH TOWER TRACK TRADE TRAIN TREAT TREND TRIAL TRIBE TRICK TRIED TRUCK TRULY TRUST TRUTH TWICE UNDER UNION UNITY UNTIL UPPER UPSET URBAN USAGE USUAL VALID VALUE VIDEO VIRUS VISIT VITAL VOCAL VOICE WASTE WATCH WATER WHEEL WHERE WHICH WHILE WHITE WHOLE WOMAN WOMEN WORLD WORRY WORSE WORST WORTH WOULD WRITE WRONG WROTE YACHT YIELD YOUNG YOUTH`.split(/\s+/);
+
+function dailyWordFor(date, difficulty) {
+  // Seed a separate shuffled order per 598-day cycle and difficulty. Dates
+  // share an answer for everyone on the same local day, without repeats
+  // within a cycle for that level.
+  const epoch = Date.UTC(2026, 0, 1);
+  const dayNumber = Math.floor((Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - epoch) / 86400000);
+  const words = [...DAILY_WORD_BANK];
+  const cycle = Math.floor(dayNumber / words.length);
+  let seed = (cycle * 2654435761 + (difficulty === 'beginner' ? 101 : difficulty === 'intermediate' ? 211 : 307)) >>> 0;
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  for (let i = words.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [words[i], words[j]] = [words[j], words[i]];
+  }
+  const wordIndex = ((dayNumber % words.length) + words.length) % words.length;
+  return words[wordIndex];
+}
+
 const CONNECTION_SETS = {
   beginner: [
     [{category:'Fruits',words:['Apple','Mango','Peach','Grape']},{category:'Pets',words:['Cat','Dog','Hamster','Rabbit']},{category:'Colors',words:['Red','Blue','Green','Yellow']},{category:'Beach things',words:['Towel','Shell','Bucket','Sunscreen']}],
@@ -46,28 +71,137 @@ const CONNECTION_SETS = {
   ]
 };
 
+const MATRIX_SHAPE_SETS = [
+  [['●','○'],['■','□'],['▲','△']],
+  [['◆','◇'],['●','○'],['■','□']],
+  [['▲','△'],['◆','◇'],['●','○']],
+  [['■','□'],['▲','△'],['◆','◇']],
+  [['●','○'],['◆','◇'],['▲','△']]
+];
+
+function createMatrixPuzzle({shapeSet,shapeOffset=0,countOffset=0,fillOffset=0,expert=false,alternating=false,optionOffset=0}){
+  const cellAt=(row,column,shapeShift=0,countShift=0,flipFill=false)=>{
+    const shapeIndex=expert?(row+column+shapeOffset+shapeShift)%3:(row+shapeOffset+shapeShift)%3;
+    const countIndex=expert?(row+2*column+countOffset+countShift)%3:(row+column+countOffset+countShift)%3;
+    const solid=!alternating||((row+column+fillOffset+Number(flipFill))%2===0);
+    return shapeSet[shapeIndex][solid?0:1].repeat(countIndex+1);
+  };
+  const cells=[];
+  for(let row=0;row<3;row++)for(let column=0;column<3;column++)if(row!==2||column!==2)cells.push(cellAt(row,column));
+  const answer=cellAt(2,2);
+  const choices=alternating
+    ? [answer,cellAt(2,2,0,1),cellAt(2,2,1,0),cellAt(2,2,0,0,true)]
+    : [answer,cellAt(2,2,0,1),cellAt(2,2,1,0),cellAt(2,2,0,2)];
+  const offset=optionOffset%choices.length;
+  const options=[...choices.slice(offset),...choices.slice(0,offset)];
+  const explanation=expert
+    ? 'Three rules overlap: shapes cycle one step across each row and down each column; a separate 1–2–3 count cycle shifts with each row; filled and outline tiles alternate across neighboring cells.'
+    : alternating
+      ? 'Each row has its own shape. Counts cycle diagonally through 1, 2, and 3, shifting by one in each row, while filled and outline tiles alternate like a checkerboard.'
+      : 'Each row has its own shape. The counts cycle through 1, 2, and 3, shifting one position in each row.';
+  return {type:'shape',cells,answer,options,explanation};
+}
+
+const MATRIX_COLORS=['🔴','🟡','🔵','🟢'];
+const MATRIX_ARROWS=['↑','→','↓','←'];
+
+function createColorMatrix({offset=0,countOffset=0,optionOffset=0,complexity=0}){
+  const colorAt=(row,column)=>(row+column+offset)%MATRIX_COLORS.length;
+  const countAt=(row,column)=>complexity===0?1:(row+(complexity>1?2*column:column)+countOffset)%3+1;
+  const valueAt=(row,column)=>MATRIX_COLORS[colorAt(row,column)].repeat(countAt(row,column));
+  const cells=[];
+  for(let row=0;row<3;row++)for(let column=0;column<3;column++)if(row!==2||column!==2)cells.push(valueAt(row,column));
+  const answer=valueAt(2,2);
+  const choices=complexity===0?[...MATRIX_COLORS]:[
+    answer,
+    MATRIX_COLORS[(colorAt(2,2)+1)%MATRIX_COLORS.length].repeat(countAt(2,2)),
+    MATRIX_COLORS[colorAt(2,2)].repeat(countAt(2,2)%3+1),
+    MATRIX_COLORS[(colorAt(2,2)+2)%MATRIX_COLORS.length].repeat(countAt(2,2)===1?3:countAt(2,2)-1)
+  ];
+  const shift=optionOffset%choices.length;
+  const explanation=complexity===0
+    ? 'The color advances one step around the red, yellow, blue, green cycle every time you move right or down.'
+    : complexity===1
+      ? 'The color advances one step right and down. Circle counts also cycle through 1, 2, and 3, shifting one step in each new row.'
+      : 'The color advances one step right and down. Counts cycle through 1, 2, and 3; they advance one step down and two steps right.';
+  return {type:'color',cells,answer,options:[...choices.slice(shift),...choices.slice(0,shift)],explanation};
+}
+
+function createArrowMatrix({offset=0,countOffset=0,optionOffset=0,complexity=0}){
+  const directionAt=(row,column)=>(row+column+offset)%MATRIX_ARROWS.length;
+  const countAt=(row,column)=>complexity===0?1:(row+(complexity>1?2*column:column)+countOffset)%3+1;
+  const valueAt=(row,column)=>MATRIX_ARROWS[directionAt(row,column)].repeat(countAt(row,column));
+  const cells=[];
+  for(let row=0;row<3;row++)for(let column=0;column<3;column++)if(row!==2||column!==2)cells.push(valueAt(row,column));
+  const answer=valueAt(2,2);
+  const choices=complexity===0?[...MATRIX_ARROWS]:[
+    answer,
+    MATRIX_ARROWS[(directionAt(2,2)+1)%MATRIX_ARROWS.length].repeat(countAt(2,2)),
+    MATRIX_ARROWS[directionAt(2,2)].repeat(countAt(2,2)%3+1),
+    MATRIX_ARROWS[(directionAt(2,2)+2)%MATRIX_ARROWS.length].repeat(countAt(2,2)===1?3:countAt(2,2)-1)
+  ];
+  const shift=optionOffset%choices.length;
+  const explanation=complexity===0
+    ? 'Each step to the right or down turns the arrow 90 degrees clockwise.'
+    : complexity===1
+      ? 'Each step right or down turns the arrow 90 degrees clockwise. Arrow counts cycle through 1, 2, and 3, shifting one step in each new row.'
+      : 'Each step right or down turns the arrow 90 degrees clockwise. Counts cycle through 1, 2, and 3; they advance one step down and two steps right.';
+  return {type:'arrow',cells,answer,options:[...choices.slice(shift),...choices.slice(0,shift)],explanation};
+}
+
+function createNumberMatrix({operation='sum',offset=0,optionOffset=0}){
+  const rows=[];
+  for(let row=0;row<3;row++){
+    const left=row+2+offset;
+    const right=row+3+offset;
+    const result=operation==='product'?left*right:operation==='sumSquares'?left*left+right*right:left+right;
+    rows.push([left,right,result]);
+  }
+  const cells=rows.flatMap((values,row)=>row===2?values.slice(0,2):values).map(String);
+  const [left,right,answerNumber]=rows[2];
+  const answer=String(answerNumber);
+  const wrong=operation==='product'?[left+right,answerNumber-4,answerNumber+4]:operation==='sumSquares'?[left*right,left+right,answerNumber-8]:[left*right,answerNumber-2,answerNumber+2];
+  const choices=[answer,...wrong.map(String)];
+  const shift=optionOffset%choices.length;
+  const explanation=operation==='product'
+    ? 'In each row, multiply the first two numbers to get the third. The first two numbers each increase by one as you move down.'
+    : operation==='sumSquares'
+      ? 'In each row, square the first two numbers and add the results to get the third. The first two numbers each increase by one as you move down.'
+      : 'In each row, add the first two numbers to get the third. The first two numbers each increase by one as you move down.';
+  return {type:'number',cells,answer,options:[...choices.slice(shift),...choices.slice(0,shift)],explanation};
+}
+
+function createMatrixSet(shapePuzzles,numberOperations,complexity){
+  return [
+    ...shapePuzzles,
+    ...MATRIX_COLORS.map((_,offset)=>createColorMatrix({offset,countOffset:offset,optionOffset:(offset+1)%4,complexity})),
+    ...MATRIX_ARROWS.map((_,offset)=>createArrowMatrix({offset,countOffset:offset,optionOffset:(offset+2)%4,complexity})),
+    ...numberOperations.map((operation,index)=>createNumberMatrix({operation,offset:index,optionOffset:(index+1)%4}))
+  ];
+}
+
 const MATRIX_SETS = {
-  beginner: [
-    { cells:['●','●●','●●●','■','■■','■■■','▲','▲▲'], answer:'▲▲▲', options:['▲▲▲','▲▲','◆◆◆','●●●'], explanation:'Each row keeps the same shape, while the number of shapes increases from one to two to three across the row.' },
-    { cells:['◆','◆◆','◆◆◆','●','●●','●●●','■','■■'], answer:'■■■', options:['■■','■■■','▲▲▲','●●●'], explanation:'The shape changes from row to row; across each row, the count goes one, two, three.' },
-    { cells:['▲','▲▲','▲▲▲','◆','◆◆','◆◆◆','●','●●'], answer:'●●●', options:['●●','●●●','■■■','◆◆◆'], explanation:'Read each row: it uses one shape, and each step to the right adds one more.' },
-    { cells:['■','■■','■■■','▲','▲▲','▲▲▲','◆','◆◆'], answer:'◆◆◆', options:['◆◆◆','◆◆','●●●','▲▲▲'], explanation:'The rows use a different shape, and each row follows the same one-two-three count pattern.' },
-    { cells:['●','●●','●●●','◆','◆◆','◆◆◆','▲','▲▲'], answer:'▲▲▲', options:['▲▲','▲▲▲','■■■','●●●'], explanation:'Every row follows the same count pattern: one, then two, then three.' }
-  ],
-  intermediate: [
-    { cells:['●','●●','●●●','■■','■■■','■','▲▲▲','▲'], answer:'▲▲', options:['▲','▲▲','▲▲▲','◆◆'], explanation:'The shape changes by row. The counts shift one place each row: 1–2–3, then 2–3–1, then 3–1–2.' },
-    { cells:['◆','◆◆','◆◆◆','▲▲','▲▲▲','▲','●●●','●'], answer:'●●', options:['●','●●','●●●','■■'], explanation:'Across each row the count rises by one, wrapping back to one after three; each new row changes the shape.' },
-    { cells:['■■■','■','■■','●●','●●●','●','◆','◆◆'], answer:'◆◆◆', options:['◆','◆◆','◆◆◆','▲▲▲'], explanation:'The count pattern shifts across each row: 3–1–2, then 2–3–1, then 1–2–3.' },
-    { cells:['▲▲','▲▲▲','▲','◆◆◆','◆','◆◆','●','●●'], answer:'●●●', options:['●','●●','●●●','■■'], explanation:'Each row shifts the one-two-three count pattern one position to the left.' },
-    { cells:['●●●','●','●●','◆◆','◆◆◆','◆','▲','▲▲'], answer:'▲▲▲', options:['▲','▲▲','▲▲▲','■■■'], explanation:'The rows rotate the count order: 3–1–2, 2–3–1, then 1–2–3.' }
-  ],
-  expert: [
-    { cells:['●','○○','●●●','□□','■■■','□','△△△','△'], answer:'▲▲', options:['▲','▲▲','▲▲▲','△△'], explanation:'Two rules work together: counts cycle across the rows (1–2–3, 2–3–1, 3–1–2), and the fill alternates like a checkerboard. The missing tile needs two filled triangles.' },
-    { cells:['◆','◇◇','◆◆◆','△△','▲▲▲','△','●●●','○'], answer:'●●', options:['○','○○','●●','○○○'], explanation:'Counts cycle one-two-three across each row, shifting the start by one in each new row. Filled and outline shapes alternate by position.' },
-    { cells:['□','■■','□□□','△△','▲▲▲','△','●●●','○'], answer:'●●', options:['○','○○','●●','○○○'], explanation:'Follow both patterns: the count shifts across rows, and fill alternates between neighboring cells. The final cell takes two filled circles.' },
-    { cells:['△△△','▲','△△','●●','●●●','●','◇','◆◆'], answer:'◇◇◇', options:['◇','◇◇','◇◇◇','◆◆◆'], explanation:'The counts rotate through 3–1–2, 2–3–1, then 1–2–3. The shape changes by row and the fill alternates across adjacent tiles.' },
-    { cells:['○','●●','○○○','■■','□□□','■','◆◆◆','◇'], answer:'◇◇', options:['◇','◇◇','◆◆','◇◇◇'], explanation:'Each row shifts the count cycle one place, and alternating fill switches between outline and solid. The missing cell has two outline diamonds.' }
-  ]
+  beginner: createMatrixSet([
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[0],countOffset:0,optionOffset:0}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[1],countOffset:1,optionOffset:1}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[2],countOffset:2,optionOffset:2}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[3],countOffset:0,optionOffset:3}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[4],countOffset:1,optionOffset:1})
+  ],['sum','sum','sum'],0),
+  intermediate: createMatrixSet([
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[0],countOffset:0,alternating:true,optionOffset:1}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[1],countOffset:1,fillOffset:1,alternating:true,optionOffset:2}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[2],countOffset:2,alternating:true,optionOffset:3}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[3],countOffset:0,fillOffset:1,alternating:true,optionOffset:1}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[4],countOffset:1,alternating:true,optionOffset:2})
+  ],['sum','product','product'],1),
+  expert: createMatrixSet([
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[0],shapeOffset:0,countOffset:0,alternating:true,expert:true,optionOffset:2}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[1],shapeOffset:1,countOffset:1,fillOffset:1,alternating:true,expert:true,optionOffset:3}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[2],shapeOffset:2,countOffset:2,alternating:true,expert:true,optionOffset:1}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[3],shapeOffset:1,countOffset:0,fillOffset:1,alternating:true,expert:true,optionOffset:2}),
+    createMatrixPuzzle({shapeSet:MATRIX_SHAPE_SETS[4],shapeOffset:2,countOffset:1,alternating:true,expert:true,optionOffset:3})
+  ],['sumSquares','sumSquares','sumSquares'],2)
 };
 
 const today = new Date();
@@ -75,12 +209,39 @@ const dayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'
 const epoch = Date.UTC(2026, 0, 1);
 const dayNumber = Math.floor((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()) - epoch) / 86400000);
 const puzzleIndex = ((dayNumber % 5) + 5) % 5;
+const matrixPuzzleCount = MATRIX_SETS.beginner.length;
+const matrixPuzzleIndex = ((dayNumber % matrixPuzzleCount) + matrixPuzzleCount) % matrixPuzzleCount;
 const storageKey = `brainic:${dayKey}`;
 const badgeStorageKey = 'brainic:badges';
 const themeStorageKey = 'brainic:theme';
+const petChoiceStorageKey = 'brainic:pet-companion:v1';
+const PET_CHOICES = {
+  dog:{name:'Dog'},
+  cat:{name:'Cat'},
+  bird:{name:'Bird'},
+  whale:{name:'Whale'}
+};
+const DAILY_AFFIRMATIONS = [
+  'You showed up, stayed curious, and kept going. That matters.',
+  'Every challenge you try is a chance to grow.',
+  'Your patience and persistence are worth celebrating.',
+  'Progress is built one thoughtful step at a time.',
+  'You can meet hard things one step at a time.',
+  'Your effort today is something to be proud of.',
+  'Keep trusting your ability to learn as you go.',
+  'Small moments of focus can add up to meaningful progress.',
+  'You deserve credit for finishing what you started.',
+  'You have more courage and curiosity than you think.',
+  'A tough puzzle does not define you; your willingness to try does.',
+  'Take pride in making time for your own growth.',
+  'You are allowed to learn at your own pace.',
+  'Showing up for yourself is already a meaningful win.',
+  'You can be proud of the care and focus you brought today.'
+];
 const BADGE_DEFINITIONS = {
   word: { name:'Word Whiz', icon:'🧠', description:'Solved the daily word.' },
   connections: { name:'Pattern Finder', icon:'🔗', description:'Found all four word groups.' },
+  connectionsPerfect: { name:'Flawless Link', icon:'🏆', description:'Found all four word groups without a mistake.' },
   country: { name:'World Scout', icon:'🌍', description:'Guessed today’s country.' },
   matrix: { name:'Pattern Seeker', icon:'🔷', description:'Solved the daily pattern matrix.' }
 };
@@ -91,8 +252,9 @@ function readBadges() {
 function syncEarnedBadges() {
   if (state.started && state.difficulty) {
     const earned=[];
-    if (state.wordWon) earned.push('word');
+    if (state.wordWon && state.wordDone && Array.isArray(state.wordGuesses) && state.wordGuesses[state.wordGuesses.length-1]===dailyWordFor(today,state.difficulty)) earned.push('word');
     if (state.connectionsSolved.length===4) earned.push('connections');
+    if (state.connectionsSolved.length===4 && state.connectionsMistakes===4) earned.push('connectionsPerfect');
     if (state.countryWon) earned.push('country');
     if (state.matrixWon) earned.push('matrix');
     const badges=readBadges();
@@ -120,42 +282,249 @@ function renderBadgeInventory() {
     copy.append(title,description,date);card.append(icon,copy);inventory.append(card);
   });
 }
-const fresh = () => ({ gameVersion:4, difficulty:null, started:false, stage:0, wordGuesses:[], wordDone:false, wordWon:false, wordCelebrationSeen:false, connectionsBoard:[], connectionsSelected:[], connectionsSolved:[], connectionsMistakes:4, connectionsDone:false, connectionsMessage:'', countryTries:0, countryDone:false, countryWon:false, countryHint:null, matrixDone:false, matrixWon:false, matrixChoice:null });
+const fresh = () => ({ gameVersion:6, difficulty:null, started:false, petChoicePending:false, stage:0, wordAnswer:null, wordGuesses:[], wordDone:false, wordWon:false, wordCelebrationSeen:false, connectionsBoard:[], connectionsSelected:[], connectionsSolved:[], connectionsMistakes:4, connectionsDone:false, connectionsMessage:'', countryTries:0, countryDone:false, countryWon:false, countryHint:null, matrixDone:false, matrixWon:false, matrixChoice:null, affirmation:null });
 let state;
 try {
   const stored=JSON.parse(localStorage.getItem(storageKey)||'{}');
   state={...fresh(),...stored};
-  if (![3,4].includes(state.gameVersion)||!state.difficulty) state=fresh();
-  else state.gameVersion=4;
+  if (![3,4,5,6].includes(state.gameVersion)||!state.difficulty) state=fresh();
+  else {
+    if(state.gameVersion<6){state.matrixDone=false;state.matrixWon=false;state.matrixChoice=null;}
+    state.gameVersion=6;
+  }
 } catch { state = fresh(); }
 const $ = id => document.getElementById(id);
+const storedPetChoice=localStorage.getItem(petChoiceStorageKey);
+let selectedPetType=Object.prototype.hasOwnProperty.call(PET_CHOICES,storedPetChoice)?storedPetChoice:(state.started?'cat':null);
 let activeTheme=localStorage.getItem(themeStorageKey)==='dark'?'dark':'light';
 function applyTheme(){
   document.documentElement.dataset.theme=activeTheme;
   const dark=activeTheme==='dark';
+  const themeMeta=document.querySelector('meta[name="theme-color"]');
+  if(themeMeta)themeMeta.content=dark?'#11101b':'#f0edfc';
   $('theme-toggle').setAttribute('aria-label',`Switch to ${dark?'light':'dark'} mode`);
   $('theme-icon').textContent=dark?'☀':'☾';
   $('theme-label').textContent=dark?'Light':'Dark';
 }
 const save = () => localStorage.setItem(storageKey, JSON.stringify(state));
-const currentPuzzle = () => state.difficulty ? { ...PUZZLES[state.difficulty][puzzleIndex], connections:CONNECTION_SETS[state.difficulty][puzzleIndex], matrix:MATRIX_SETS[state.difficulty][puzzleIndex] } : null;
+const currentPuzzle = () => state.difficulty ? { ...PUZZLES[state.difficulty][puzzleIndex], word:dailyWordFor(today,state.difficulty), connections:CONNECTION_SETS[state.difficulty][puzzleIndex], matrix:MATRIX_SETS[state.difficulty][matrixPuzzleIndex] } : null;
+
+function syncWordPuzzleProgress(){
+  if(!state.difficulty)return;
+  const answer=dailyWordFor(today,state.difficulty);
+  if(state.wordAnswer===answer)return;
+  const guesses=Array.isArray(state.wordGuesses)?state.wordGuesses:[];
+  const legacyWinStillMatches=state.wordAnswer==null&&state.wordWon&&state.wordDone&&guesses[guesses.length-1]===answer;
+  const staleWin=state.wordWon&&!legacyWinStillMatches;
+  if(!legacyWinStillMatches){
+    state.wordGuesses=[];
+    state.wordDone=false;
+    state.wordWon=false;
+    state.wordCelebrationSeen=false;
+    $('word-message').textContent='';
+  }
+  state.wordAnswer=answer;
+  if(staleWin){
+    const badges=readBadges();
+    const validBadges=badges.filter(badge=>badge.id!==`${dayKey}:${state.difficulty}:word`);
+    if(validBadges.length!==badges.length)localStorage.setItem(badgeStorageKey,JSON.stringify(validBadges));
+  }
+  save();
+}
+
+function syncPetAppearance(){
+  const pet=$('running-pet');
+  if(!selectedPetType||!PET_CHOICES[selectedPetType]){pet.classList.add('hidden');return;}
+  pet.classList.remove('hidden');
+  Object.keys(PET_CHOICES).forEach(type=>pet.classList.remove(`pet-type-${type}`));
+  pet.classList.add(`pet-type-${selectedPetType}`);
+  $('pet-illustration').src=`assets/pets/${selectedPetType}.svg`;
+  pet.setAttribute('aria-label',`Your ${PET_CHOICES[selectedPetType].name}. Hover, focus, or tap for a kind message.`);
+}
+
+function initRunningPet(){
+  const pet=$('running-pet');
+  const message=$('pet-message');
+  const niceMessages=[
+    'You are doing better than you think.',
+    'Small steps count. I believe in you!',
+    'Your curiosity makes the world brighter.',
+    'You deserve to feel proud of yourself.',
+    'Keep going at your own pace. You’ve got this.',
+    'I’m glad you’re here. Let’s try one more thing!'
+  ];
+  const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let messageIndex=-1;
+  let movementTimer=null;
+  let resumeTimer=null;
+  let clickMoveTimer=null;
+  let paused=false;
+  let movingToClick=false;
+  const movementInterval=30000;
+
+  function scheduleMove(delay=movementInterval){
+    clearTimeout(movementTimer);
+    if(reducedMotion.matches||!selectedPetType||pet.classList.contains('hidden'))return;
+    movementTimer=setTimeout(movePet,delay);
+  }
+
+  function setMessage(){
+    let next=messageIndex;
+    while(niceMessages.length>1&&next===messageIndex)next=Math.floor(Math.random()*niceMessages.length);
+    messageIndex=next;
+    const words=niceMessages[messageIndex];
+    message.textContent=words;
+    const name=PET_CHOICES[selectedPetType]?.name||'Pet';
+    pet.setAttribute('aria-label',`${name} says: ${words}`);
+  }
+  function updateExpanded(){
+    pet.setAttribute('aria-expanded',String(pet.matches(':hover')||(document.activeElement===pet&&pet.matches(':focus-visible'))||pet.classList.contains('message-open')));
+  }
+  function freeze(){
+    paused=true;
+    clearTimeout(movementTimer);
+    const rect=pet.getBoundingClientRect();
+    pet.style.transitionDuration='0ms, 0ms';
+    pet.style.right='auto';pet.style.bottom='auto';
+    pet.style.left=`${rect.left}px`;pet.style.top=`${rect.top}px`;
+  }
+  function points(){
+    const size=pet.getBoundingClientRect();
+    const topbar=document.querySelector('.topbar');
+    const left=10;
+    const right=Math.max(left,window.innerWidth-size.width-10);
+    const top=Math.max(62,(topbar?.getBoundingClientRect().bottom||48)+8);
+    const bottom=Math.max(top,window.innerHeight-size.height-14);
+    const blockers=[...document.querySelectorAll('h1,h2,h3,p,button,input,textarea,select,.intro-tile,.stage-nav,.word-grid,.tile,.word-award,.solved-group,.connections-meta,.connections-prompt,.connections-grid,.connections-actions,.stage-footer,.clue-card,.country-hints,.matrix-grid,.matrix-options,.matrix-explanation,footer')]
+      .filter(element=>element!==pet&&element.getClientRects().length)
+      .map(element=>element.getBoundingClientRect());
+    for(let attempt=0;attempt<60;attempt++){
+      const target={x:left+Math.random()*(right-left),y:top+Math.random()*(bottom-top)};
+      const clear=blockers.every(rect=>target.x+size.width<rect.left-8||target.x>rect.right+8||target.y+size.height<rect.top-8||target.y>rect.bottom+8);
+      if(clear)return [target];
+    }
+    return [{x:right,y:top}];
+  }
+  function setStaticPosition(){
+    clearTimeout(movementTimer);
+    pet.style.transitionDuration='0ms, 0ms';
+    pet.style.left='auto';pet.style.top='auto';pet.style.right='12px';pet.style.bottom='12px';
+  }
+  function movePetTo(clientX,clientY){
+    if(reducedMotion.matches||!selectedPetType||pet.classList.contains('hidden'))return;
+    paused=false;movingToClick=true;
+    clearTimeout(movementTimer);clearTimeout(resumeTimer);clearTimeout(clickMoveTimer);
+    pet.classList.remove('message-open');
+    const rect=pet.getBoundingClientRect();
+    const maxX=Math.max(4,window.innerWidth-rect.width-4);
+    const maxY=Math.max(4,window.innerHeight-rect.height-4);
+    const x=Math.max(4,Math.min(maxX,clientX-rect.width/2));
+    const y=Math.max(4,Math.min(maxY,clientY-rect.height/2));
+    const distance=Math.hypot(x-rect.left,y-rect.top);
+    const duration=Math.max(450,Math.min(2400,distance/0.3));
+    if(Math.abs(x-rect.left)>3)pet.style.setProperty('--pet-facing',x<rect.left?'-1':'1');
+    pet.classList.toggle('pet-near-left',x<window.innerWidth/2);
+    pet.classList.toggle('pet-near-right',x>=window.innerWidth/2);
+    pet.style.transitionDuration=`${duration}ms, ${duration}ms`;
+    pet.style.left=`${x}px`;pet.style.top=`${y}px`;
+    clickMoveTimer=setTimeout(()=>{
+      movingToClick=false;
+      if(pet.matches(':hover')){setMessage();paused=true;}
+      else scheduleMove();
+      updateExpanded();
+    },duration+40);
+  }
+  function movePet(){
+    if(reducedMotion.matches){setStaticPosition();return;}
+    if(!selectedPetType||pet.classList.contains('hidden'))return;
+    if(paused||pet.matches(':hover')||document.activeElement===pet||pet.classList.contains('message-open'))return;
+    let target=points()[0];
+    const rect=pet.getBoundingClientRect();
+    let distance=Math.hypot(target.x-rect.left,target.y-rect.top);
+    let attempts=0;
+    while(distance<100&&attempts<5){target=points()[0];distance=Math.hypot(target.x-rect.left,target.y-rect.top);attempts++;}
+    const duration=Math.max(1200,Math.min(6200,distance/0.22));
+    if(Math.abs(target.x-rect.left)>3)pet.style.setProperty('--pet-facing',target.x<rect.left?'-1':'1');
+    pet.classList.toggle('pet-near-left',target.x<window.innerWidth/2);
+    pet.classList.toggle('pet-near-right',target.x>=window.innerWidth/2);
+    pet.style.transitionDuration=`${duration}ms, ${duration}ms`;
+    pet.style.left=`${target.x}px`;pet.style.top=`${target.y}px`;
+    scheduleMove(movementInterval);
+  }
+  function resume(){
+    clearTimeout(resumeTimer);
+    resumeTimer=setTimeout(()=>{
+      if(pet.matches(':hover')||document.activeElement===pet||pet.classList.contains('message-open'))return;
+      paused=false;scheduleMove();
+    },700);
+  }
+
+  pet.addEventListener('pointerenter',()=>{if(movingToClick)return;freeze();setMessage();updateExpanded();});
+  pet.addEventListener('pointerleave',()=>{updateExpanded();if(!movingToClick&&document.activeElement!==pet&&!pet.classList.contains('message-open'))resume();});
+  pet.addEventListener('focus',()=>{freeze();setMessage();updateExpanded();});
+  pet.addEventListener('blur',()=>{updateExpanded();if(!pet.matches(':hover')&&!pet.classList.contains('message-open'))resume();});
+  pet.addEventListener('click',()=>{
+    const open=pet.classList.toggle('message-open');
+    if(open){freeze();setMessage();}else if(!pet.matches(':hover')&&document.activeElement!==pet)resume();
+    updateExpanded();
+  });
+  pet.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&pet.classList.contains('message-open')){pet.classList.remove('message-open');pet.blur();updateExpanded();resume();}
+  });
+  document.addEventListener('pointerdown',event=>{
+    if(pet.contains(event.target))return;
+    if(pet.classList.contains('message-open'))pet.classList.remove('message-open');
+    updateExpanded();
+    if(!pet.matches(':hover')&&document.activeElement!==pet)resume();
+  });
+  document.addEventListener('dblclick',event=>{
+    if(pet.contains(event.target))return;
+    movePetTo(event.clientX,event.clientY);
+  });
+  window.addEventListener('resize',()=>{
+    if(reducedMotion.matches){setStaticPosition();return;}
+    const rect=pet.getBoundingClientRect();
+    const x=Math.max(8,Math.min(rect.left,window.innerWidth-rect.width-8));
+    const y=Math.max(62,Math.min(rect.top,window.innerHeight-rect.height-8));
+    pet.style.transitionDuration='0ms, 0ms';pet.style.left=`${x}px`;pet.style.top=`${y}px`;
+  });
+  window.addEventListener('brainic:pet-selected',()=>{paused=false;scheduleMove();});
+  if(typeof reducedMotion.addEventListener==='function')reducedMotion.addEventListener('change',()=>reducedMotion.matches?setStaticPosition():scheduleMove());
+  else if(typeof reducedMotion.addListener==='function')reducedMotion.addListener(()=>reducedMotion.matches?setStaticPosition():scheduleMove());
+  if(reducedMotion.matches)setStaticPosition();else scheduleMove();
+}
 
 function render() {
+  syncWordPuzzleProgress();
+  if(state.petChoicePending&&selectedPetType){state.petChoicePending=false;state.started=true;save();}
   syncEarnedBadges();
   applyTheme();
   $('date-label').textContent = new Intl.DateTimeFormat('en', { weekday:'long', month:'long', day:'numeric' }).format(today);
   $('difficulty-screen').classList.toggle('hidden', state.started);
+  $('difficulty-screen').dataset.difficulty=state.difficulty||'';
   $('stage-nav').classList.toggle('hidden', !state.started);
   $('game-card').classList.toggle('hidden', !state.started);
+  $('game-card').dataset.stage=String(state.stage);
   $('below-card').classList.toggle('hidden', !(state.started && state.stage===3 && state.matrixDone));
   document.querySelectorAll('.difficulty-option').forEach(button => {
     const selected = button.dataset.difficulty === state.difficulty;
     button.classList.toggle('selected', selected);
     button.setAttribute('aria-pressed', String(selected));
   });
+  const petChoicePending=!state.started&&state.petChoicePending&&!selectedPetType;
+  $('difficulty-screen').setAttribute('aria-labelledby',petChoicePending?'pet-choice-title':'difficulty-title');
+  $('difficulty-picker').classList.toggle('hidden',petChoicePending);
+  $('pet-choice-step').classList.toggle('hidden',!petChoicePending);
+  syncPetAppearance();
   if (!state.started) return;
 
   const puzzle = currentPuzzle();
+  if(state.matrixDone&&!state.affirmation){
+    const affirmationIndex=((dayNumber%DAILY_AFFIRMATIONS.length)+DAILY_AFFIRMATIONS.length)%DAILY_AFFIRMATIONS.length;
+    state.affirmation=DAILY_AFFIRMATIONS[affirmationIndex];
+    save();
+  }
+  $('daily-affirmation').textContent=state.matrixDone?state.affirmation||'':'';
   document.querySelectorAll('[data-stage-tab]').forEach((tab, i) => {
     tab.classList.toggle('active', i === state.stage);
     tab.classList.toggle('complete', (i === 0 && state.wordDone) || (i === 1 && state.connectionsDone) || (i === 2 && state.countryDone) || (i === 3 && state.matrixDone));
@@ -168,29 +537,33 @@ function render() {
   $('country-panel').classList.toggle('hidden', state.stage !== 2);
   $('matrix-panel').classList.toggle('hidden', state.stage !== 3);
   const titles = ['Find the five-letter word','Connect the words','Name the country','Complete the pattern'];
-  const descriptions = ['You have six tries. Each guess must be a five-letter word.','Sort all 16 words into four groups of four.','Three clues, three guesses, and one optional hint.','Find the rule that connects the shapes in the grid.'];
+  const descriptions = ['You have six tries. Each guess must be a five-letter word.','Sort all 16 words into four groups of four.','Three clues, three guesses, and one optional hint.','Find the rule that completes the pattern grid.'];
   $('stage-title').textContent = titles[state.stage]; $('stage-description').textContent = descriptions[state.stage];
-  $('footer-hint').textContent = ['Green means right letter, right place.','Each word belongs to exactly one group.','Reveal the continent or flag colors if you need a nudge.','Look for changes in shape, count, position, or fill.'][state.stage];
+  $('footer-hint').textContent = ['Green means right letter, right place.','Each word belongs to exactly one group.','Reveal the continent or flag colors if you need a nudge.','Look for changes in shape, color, count, direction, or number.'][state.stage];
   const stageComplete=[state.wordDone,state.connectionsDone,state.countryDone,state.matrixDone];
   $('continue-button').classList.toggle('hidden', !(state.stage<3 && stageComplete[state.stage]));
   $('continue-button').textContent = `Continue to stage ${state.stage+2} →`;
   drawWord(puzzle); drawConnections(puzzle); drawCountry(puzzle); drawMatrix(puzzle);
-  $('word-input').disabled = state.wordDone; $('country-input').disabled = state.countryDone;
+  $('word-input').disabled = state.wordDone;
+  $('word-form').querySelector('button[type="submit"]').disabled=state.wordDone;
+  $('country-input').disabled = state.countryDone;
 }
 
 function drawMatrix(puzzle) {
   const matrix=puzzle.matrix;
   const grid=$('matrix-grid');grid.innerHTML='';
+  grid.className=`matrix-grid matrix-grid-${matrix.type||'shape'}`;
   [...matrix.cells,null].forEach((symbols,index)=>{
     const tile=document.createElement('div');tile.className='matrix-tile';
     if(index===8){tile.classList.add('matrix-missing');tile.textContent=state.matrixDone?matrix.answer:'?';tile.setAttribute('aria-label',state.matrixDone?`Answer: ${matrix.answer}`:'Missing tile');}
-    else{tile.textContent=symbols;tile.setAttribute('aria-label',`${symbols.length} ${symbols[0]}`);}
+    else{tile.textContent=symbols;tile.setAttribute('aria-label',matrixValueLabel(symbols,matrix.type));}
     grid.append(tile);
   });
   const options=$('matrix-options');options.innerHTML='';
+  options.className=`matrix-options matrix-options-${matrix.type||'shape'}`;
   matrix.options.forEach((value,index)=>{
     const button=document.createElement('button');button.type='button';button.className='matrix-option';button.textContent=value;
-    button.setAttribute('aria-label',`Option ${String.fromCharCode(65+index)}: ${value}`);
+    button.setAttribute('aria-label',`Option ${String.fromCharCode(65+index)}: ${matrixValueLabel(value,matrix.type)}`);
     button.setAttribute('aria-pressed',String(state.matrixChoice===value));
     button.classList.toggle('selected',state.matrixChoice===value);
     button.classList.toggle('correct',state.matrixDone&&value===matrix.answer);
@@ -202,6 +575,20 @@ function drawMatrix(puzzle) {
   $('matrix-message').classList.toggle('error',state.matrixDone&&!state.matrixWon);
   $('matrix-explanation').textContent=matrix.explanation;
   $('matrix-explanation').classList.toggle('hidden',!state.matrixDone);
+}
+
+function matrixValueLabel(value,type){
+  const items=Array.from(value);
+  if(type==='number')return `Number ${value}`;
+  if(type==='arrow'){
+    const direction={'↑':'up','→':'right','↓':'down','←':'left'}[items[0]]||'directional';
+    return `${items.length} ${direction}-pointing arrow${items.length===1?'':'s'}`;
+  }
+  if(type==='color'){
+    const color={'🔴':'red','🟡':'yellow','🔵':'blue','🟢':'green'}[items[0]]||'colored';
+    return `${items.length} ${color} circle${items.length===1?'':'s'}`;
+  }
+  return `${items.length} ${items[0]}`;
 }
 
 function chooseMatrixAnswer(value){
@@ -220,11 +607,31 @@ function drawWord(puzzle) {
     grid.append(tile);
   }
   const award = $('word-award');
-  award.classList.toggle('hidden', !state.wordWon);
-  const celebrateNow = state.wordWon && !state.wordCelebrationSeen;
+  const correctlySolved=state.wordWon&&state.wordDone&&state.wordGuesses[state.wordGuesses.length-1]===puzzle.word;
+  award.classList.toggle('hidden', !correctlySolved);
+  const celebrateNow = correctlySolved && !state.wordCelebrationSeen;
   award.classList.toggle('celebrate', celebrateNow);
   if (celebrateNow) { state.wordCelebrationSeen = true; save(); }
-  if (state.wordDone) $('word-message').textContent = state.wordWon ? `Lovely. The word was ${puzzle.word}.` : `The word was ${puzzle.word}.`;
+  const wordMessage=$('word-message');
+  if(state.wordDone){
+    const revealKey=`${correctlySolved?'solved':'revealed'}:${puzzle.word}`;
+    if(wordMessage.dataset.reveal!==revealKey){
+      const label=document.createElement('span');
+      label.className='word-reveal-label';
+      label.textContent=correctlySolved?'Lovely! You found the word':'The word was';
+      const answer=document.createElement('strong');
+      answer.className='word-reveal-answer';
+      answer.textContent=puzzle.word;
+      wordMessage.replaceChildren(label,answer);
+      wordMessage.dataset.reveal=revealKey;
+    }
+    wordMessage.classList.remove('error');
+    wordMessage.classList.add('word-revealed');
+  }else if(wordMessage.classList.contains('word-revealed')){
+    wordMessage.classList.remove('word-revealed');
+    delete wordMessage.dataset.reveal;
+    wordMessage.textContent='';
+  }
 }
 
 function shuffle(items) {
@@ -257,7 +664,11 @@ function drawConnections(puzzle) {
   $('selection-count').textContent=`${state.connectionsSelected.length} selected`;
   $('clear-selection').disabled=state.connectionsSelected.length===0||state.connectionsDone;
   $('submit-group').disabled=state.connectionsSelected.length!==4||state.connectionsDone;
-  $('connections-message').textContent=state.connectionsMessage;
+  const feedback=$('connections-message');
+  feedback.textContent=state.connectionsMessage;
+  feedback.classList.toggle('feedback-one-away',state.connectionsMessage.startsWith('One away!'));
+  feedback.classList.toggle('feedback-success',state.connectionsMessage.startsWith('Nice connection!')||state.connectionsMessage.startsWith('All four connections'));
+  feedback.classList.toggle('feedback-error',state.connectionsMessage.startsWith('Not quite.')||state.connectionsMessage.startsWith('Out of mistakes'));
   grid.classList.toggle('hidden',revealAll);
   $('connections-actions').classList.toggle('hidden',revealAll);
 }
@@ -306,7 +717,19 @@ function drawCountry(puzzle) {
   $('flag-hint').classList.toggle('revealed', state.countryHint === 'flag');
 }
 
-document.querySelectorAll('.difficulty-option').forEach(button=>button.addEventListener('click',()=>{state.difficulty=button.dataset.difficulty;state.started=true;save();render();}));
+document.querySelectorAll('.difficulty-option').forEach(button=>button.addEventListener('click',()=>{
+  state.difficulty=button.dataset.difficulty;
+  if(!selectedPetType){state.petChoicePending=true;save();render();return;}
+  state.petChoicePending=false;state.started=true;save();render();
+}));
+document.querySelectorAll('[data-pet-option]').forEach(button=>button.addEventListener('click',()=>{
+  const choice=button.dataset.petOption;
+  if(!Object.prototype.hasOwnProperty.call(PET_CHOICES,choice))return;
+  selectedPetType=choice;
+  localStorage.setItem(petChoiceStorageKey,choice);
+  state.petChoicePending=false;state.started=true;save();render();
+  window.dispatchEvent(new Event('brainic:pet-selected'));
+}));
 $('word-form').addEventListener('submit', e=>{
   e.preventDefault(); if(state.wordDone)return; const guess=$('word-input').value.trim().toUpperCase();
   if(!/^[A-Z]{5}$/.test(guess)){ $('word-message').textContent='Enter a five-letter word to guess.'; $('word-message').classList.add('error'); return; }
@@ -335,3 +758,4 @@ $('share-button').addEventListener('click',async()=>{
 });
 
 render();
+initRunningPet();

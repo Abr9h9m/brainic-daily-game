@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 72" fill="none">
+  <defs>
+    <linearGradient id="blue" x1="31" y1="17" x2="72" y2="55" gradientUnits="userSpaceOnUse"><stop stop-color="#91C8D9"/><stop offset="1" stop-color="#4E89A4"/></linearGradient>
+    <linearGradient id="breast" x1="52" y1="33" x2="69" y2="52" gradientUnits="userSpaceOnUse"><stop stop-color="#F6D89A"/><stop offset="1" stop-color="#EBAF68"/></linearGradient>
+  </defs>
+  <ellipse cx="49" cy="63" rx="28" ry="3.5" fill="#26352B" fill-opacity=".12"/>
+  <path d="M23 46c7-11 20-18 34-17 12 1 20 8 22 18-7 9-20 13-34 10-10-2-17-6-22-11z" fill="url(#blue)" stroke="#3D7087" stroke-width="1.7"/>
+  <path class="bird-wing" d="M39 39c7-12 18-18 30-16 0 11-7 21-19 26z" fill="#5B91A5" stroke="#3D7087" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="m51 38 13-10m-17 15 16-10m-19 14 16-9" stroke="#A8D4DB" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M54 38c10-4 18 1 22 9-5 7-13 11-23 10-5-7-5-13 1-19z" fill="url(#breast)"/>
+  <path d="M25 42 12 34l4 14-5 9 18-5z" fill="#4D8197" stroke="#3D7087" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M77 37c7 0 12 3 15 7l-14 4z" fill="#D99A4B" stroke="#9A6C39" stroke-width="1.4" stroke-linejoin="round"/>
+  <circle cx="72" cy="34" r="2" fill="#26312E"/>
+  <circle cx="72.7" cy="33.3" r=".6" fill="#FFF"/>
+  <path d="m43 54-1 8m13-7 2 7" stroke="#A66C42" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M35 63h-7m31 0h-7" stroke="#A66C42" stroke-width="1.7" stroke-linecap="round"/>
+</svg>
