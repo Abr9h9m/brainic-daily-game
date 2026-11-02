@@ -97,6 +97,8 @@ function render() {
 }
 
 function drawWord(puzzle) {
+  if(!Array.isArray(state.wordGuesses)) state.wordGuesses=[];
+  state.wordGuesses=state.wordGuesses.filter(guess=>typeof guess==='string'&&/^[A-Z]{5}$/.test(guess)).slice(0,6);
   const grid = $('word-grid'); grid.innerHTML = '';
   for (let r=0;r<6;r++) for (let c=0;c<5;c++) {
     const tile = document.createElement('div'); tile.className='tile';
