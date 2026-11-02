@@ -52,6 +52,47 @@ const epoch = Date.UTC(2026, 0, 1);
 const dayNumber = Math.floor((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()) - epoch) / 86400000);
 const puzzleIndex = ((dayNumber % 5) + 5) % 5;
 const storageKey = `brainic:${dayKey}`;
+const badgeStorageKey = 'brainic:badges';
+const BADGE_DEFINITIONS = {
+  word: { name:'Word Whiz', icon:'🧠', description:'Solved the daily word.' },
+  connections: { name:'Pattern Finder', icon:'🔗', description:'Found all four word groups.' },
+  country: { name:'World Scout', icon:'🌍', description:'Guessed today’s country.' }
+};
+function readBadges() {
+  try { const badges=JSON.parse(localStorage.getItem(badgeStorageKey)||'[]'); return Array.isArray(badges)?badges.filter(badge=>badge&&typeof badge.id==='string'):[]; }
+  catch { return []; }
+}
+function syncEarnedBadges() {
+  if (state.started && state.difficulty) {
+    const earned=[];
+    if (state.wordWon) earned.push('word');
+    if (state.connectionsSolved.length===4) earned.push('connections');
+    if (state.countryWon) earned.push('country');
+    const badges=readBadges();
+    earned.forEach(stage=>{
+      const id=`${dayKey}:${state.difficulty}:${stage}`;
+      if (!badges.some(badge=>badge.id===id)) badges.push({id,date:dayKey,difficulty:state.difficulty,stage,...BADGE_DEFINITIONS[stage]});
+    });
+    if (badges.length!==readBadges().length) localStorage.setItem(badgeStorageKey,JSON.stringify(badges));
+  }
+  $('badge-count').textContent=readBadges().length;
+}
+function renderBadgeInventory() {
+  const badges=readBadges().sort((a,b)=>b.date.localeCompare(a.date)||a.name.localeCompare(b.name));
+  $('badge-summary').textContent=badges.length?`${badges.length} ${badges.length===1?'badge':'badges'} collected`:'Solve a stage to earn your first badge.';
+  const inventory=$('badge-inventory');inventory.innerHTML='';
+  if(!badges.length){const empty=document.createElement('p');empty.className='badge-empty';empty.textContent='Your collection is waiting for its first achievement.';inventory.append(empty);return;}
+  badges.forEach(badge=>{
+    const card=document.createElement('article');card.className='badge-entry';
+    const icon=document.createElement('span');icon.className='badge-entry-icon';icon.setAttribute('aria-hidden','true');icon.textContent=badge.icon||'✦';
+    const copy=document.createElement('span');copy.className='badge-entry-copy';
+    const title=document.createElement('strong');title.textContent=badge.name;
+    const description=document.createElement('span');description.textContent=badge.description;
+    const date=document.createElement('span');date.className='badge-entry-meta';
+    const parsed=new Date(`${badge.date}T12:00:00`);date.textContent=`${Number.isNaN(parsed.getTime())?badge.date:new Intl.DateTimeFormat('en',{month:'short',day:'numeric',year:'numeric'}).format(parsed)} · ${badge.difficulty||'daily'}`;
+    copy.append(title,description,date);card.append(icon,copy);inventory.append(card);
+  });
+}
 const fresh = () => ({ gameVersion:3, difficulty:null, started:false, stage:0, wordGuesses:[], wordDone:false, wordWon:false, wordCelebrationSeen:false, connectionsBoard:[], connectionsSelected:[], connectionsSolved:[], connectionsMistakes:4, connectionsDone:false, connectionsMessage:'', countryTries:0, countryDone:false, countryWon:false, countryHint:null });
 let state;
 try {
@@ -63,6 +104,7 @@ const save = () => localStorage.setItem(storageKey, JSON.stringify(state));
 const currentPuzzle = () => state.difficulty ? { ...PUZZLES[state.difficulty][puzzleIndex], connections:CONNECTION_SETS[state.difficulty][puzzleIndex] } : null;
 
 function render() {
+  syncEarnedBadges();
   $('date-label').textContent = new Intl.DateTimeFormat('en', { weekday:'long', month:'long', day:'numeric' }).format(today);
   $('difficulty-screen').classList.toggle('hidden', state.started);
   $('stage-nav').classList.toggle('hidden', !state.started);
@@ -214,6 +256,7 @@ document.querySelectorAll('[data-hint]').forEach(button=>button.addEventListener
 $('continue-button').addEventListener('click',()=>{state.stage=Math.min(state.stage+1,2);save();render();window.scrollTo({top:0,behavior:'smooth'});});
 document.querySelectorAll('[data-stage-tab]').forEach(tab=>tab.addEventListener('click',()=>{const target=Number(tab.dataset.stageTab);if(target<=state.stage){state.stage=target;save();render();}}));
 $('help-button').addEventListener('click',()=>$('help-dialog').showModal()); $('close-help').addEventListener('click',()=>$('help-dialog').close());
+$('badges-button').addEventListener('click',()=>{renderBadgeInventory();$('badge-dialog').showModal();}); $('close-badges').addEventListener('click',()=>$('badge-dialog').close());
 $('share-button').addEventListener('click',async()=>{
   const result=`Brainic ${dayKey} · ${state.difficulty}\n${state.wordDone?(state.wordWon?'🟩':'🟨'):'⬜'} Word  ·  ${state.connectionsDone?(state.connectionsMistakes>0?'🟩':'🟨'):'⬜'} Connections  ·  ${state.countryDone?(state.countryWon?'🟩':'🟨'):'⬜'} Country`;
   try { await navigator.clipboard.writeText(result); $('share-button').innerHTML='Copied! ✓'; setTimeout(()=>$('share-button').innerHTML='Share result <span>↗</span>',1600); } catch { window.prompt('Copy your result:',result); }

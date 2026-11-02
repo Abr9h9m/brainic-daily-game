@@ -12,6 +12,7 @@
   <header class="topbar">
     <a class="brand" href="#top" aria-label="Brainic home"><span class="brand-mark">B</span> Brainic</a>
     <div class="date-label" id="date-label"></div>
+    <button class="badge-collection-button" id="badges-button" aria-label="Open badge collection"><span class="inventory-medal" aria-hidden="true">✦</span><span>Badges</span><span class="badge-count" id="badge-count">0</span></button>
     <button class="icon-button" id="help-button" aria-label="How to play">?</button>
   </header>
 
@@ -106,6 +107,7 @@
     <footer>Made for a curious five minutes <span>·</span> New puzzles daily</footer>
   </main>
 
-  <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="Close">×</button><p class="eyebrow">HOW TO PLAY</p><h2>Three stages, one daily run.</h2><div class="help-step"><b>01</b><p><strong>Word</strong><br>Guess the five-letter word in six tries.</p></div><div class="help-step"><b>02</b><p><strong>Connections</strong><br>Sort 16 words into four groups of four. You have four mistakes.</p></div><div class="help-step"><b>03</b><p><strong>Country</strong><br>Use three clues and up to three guesses. You may also reveal either the continent or the flag colors, once per puzzle. The flag image stays hidden.</p></div><p class="help-foot">Choose Beginner, Intermediate, or Expert at the start. Your level and progress stay on this device for today.</p></dialog>
+  <dialog id="badge-dialog" class="badge-dialog"><button class="dialog-close" id="close-badges" aria-label="Close badge collection">×</button><p class="eyebrow">YOUR COLLECTION</p><h2>Badges</h2><p class="badge-summary" id="badge-summary">No badges yet</p><div class="badge-inventory" id="badge-inventory"></div><p class="help-foot">Badges are saved in this browser.</p></dialog>
+  <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="Close">×</button><p class="eyebrow">HOW TO PLAY</p><h2>Three stages, one daily run.</h2><div class="help-step"><b>01</b><p><strong>Word</strong><br>Guess the five-letter word in six tries. Solve it to earn a Word Whiz badge.</p></div><div class="help-step"><b>02</b><p><strong>Connections</strong><br>Sort 16 words into four groups of four. Find all four groups to earn a Pattern Finder badge.</p></div><div class="help-step"><b>03</b><p><strong>Country</strong><br>Use three clues and up to three guesses. Guess the country to earn a World Scout badge. You may also reveal either the continent or flag colors, once per puzzle.</p></div><p class="help-foot">Choose Beginner, Intermediate, or Expert at the start. Your level and progress stay on this device for today.</p></dialog>
 </body>
 </html>

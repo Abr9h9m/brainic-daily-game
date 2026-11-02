@@ -29,7 +29,7 @@ At the beginning of each daily run, choose Beginner, Intermediate, or Expert. Be
 
 Guess a five-letter answer in six tries. Green means a letter is in the correct position, yellow means it appears elsewhere in the answer, and gray means it is not in the answer. The prototype currently accepts any five alphabetic letters; it does not check guesses against a dictionary.
 
-Correctly solving the word unlocks the animated **Word Whiz** daily badge. The badge remains visible after the animation and does not replay on reload.
+Correctly solving the word unlocks the animated **Word Whiz** badge. The collection also awards **Pattern Finder** for finding all four Connections groups and **World Scout** for guessing the country. Open **Badges** in the top bar to view earned badges, dates, and difficulty levels. The collection is saved in this browser across daily puzzles; it does not sync across devices or browsers.
 
 ### Stage 2 — Connections
 
@@ -45,7 +45,7 @@ An optional hint panel appears beside the clues. Reveal either the country's con
 
 - The current prototype contains five sample puzzle sets for each of the three difficulty levels in `game.js` and rotates through them by calendar day.
 - The selected set is based on the player's local calendar date. Everyone using the same local date will see the same set, but this is not tied to a single global timezone.
-- Progress is stored in `localStorage` for that date and browser. It does not sync between devices or browsers.
+- Daily game progress and the badge collection are stored in `localStorage` for that browser. They do not sync between devices or browsers.
 - The share button copies a compact emoji result to the clipboard when the browser permits it.
 - There is no server, account system, central scoring, or anti-cheat validation.
 
@@ -53,9 +53,9 @@ An optional hint panel appears beside the clues. Reveal either the country's con
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | Page structure, difficulty chooser, stage navigation, forms, Connections grid, country hint panel, help dialog, and accessible labels. |
-| `styles.css` | Visual design, typography, responsive layout, and puzzle feedback styling. |
-| `game.js` | Sample daily puzzle and Connections data by difficulty, stage rules, one-use country hints, local progress, and sharing behavior. |
+| `index.html` | Page structure, difficulty chooser, stage navigation, forms, Connections grid, country hint panel, badge collection and help dialogs, and accessible labels. |
+| `styles.css` | Visual design, typography, responsive layout, puzzle feedback, badge collection, and badge-entry styling. |
+| `game.js` | Sample daily puzzle and Connections data by difficulty, stage rules, one-use country hints, local progress, badge earning and inventory storage, and sharing behavior. |
 ## Editing puzzle content
 
 Open `game.js` and edit the `PUZZLES` and `CONNECTION_SETS` lists. Each entry has:
